@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🚀 Status Web Dinamik — Projek Pertama Saya
 
-## Getting Started
+<p align="center">
+  <a href="https://braderdin.vercel.app/">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-https://braderdin.vercel.app/-0070f3?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
+  </a>
+</p>
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 👨‍💻 Mengenai Projek Ini
+Ini adalah **laman web dinamik pertama saya**! Selepas sekian lama membina laman web statik, projek ini merupakan langkah kanan saya untuk menerokai dunia *Full-Stack development*. Sistem ini dibina berasaskan **Next.js** dan dihubungkan secara *live* terus ke pangkalan data awan **Supabase** untuk pengekalan data dinamik.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🛠️ Tech Stack & Alatan Yang Digunakan
+| Frontend & Framework | Backend & Database | Pendeploisan (Deployment) |
+| :--- | :--- | :--- |
+| ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat&logo=css3&logoColor=white) | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white) | ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=flat&logo=vercel&logoColor=white) |
+| ![JavaScript](https://img.shields.io/badge/javascript-%23F7DF1E.svg?style=flat&logo=javascript&logoColor=black) ![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=next.js&logoColor=white) | ![Python](https://img.shields.io/badge/python-3776AB?style=flat&logo=python&logoColor=white) *(Asas)* | ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=flat&logo=github&logoColor=white) |
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🏍️ Sembang Santai & Hobi
+> *"Apabila roda dua berputar, di situ ketenangan bermula."*
 
-## Learn More
+Bila ada waktu terluang, minat utama saya adalah **riding mengembara** melihat keindahan alam ciptaan tuhan. Saya seorang yang suka berkawan dan kadangkala meluangkan masa pergi **konvoi bersama rakan-rakan** untuk menikmati perjalanan. 
 
-To learn more about Next.js, take a look at the following resources:
+Namun, apabila cuaca tidak mengizinkan, tiada aktiviti di luar, atau sekadar ingin mengisi masa lapang di rumah dengan perkara berfaedah, saya akan duduk di depan laptop untuk **belajar coding** secara kendiri. Projek ini adalah saksi kepada usaha kecil saya dalam menguasai kemahiran baharu ini.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### ⚙️ Aliran Kerja Automatik (GitHub & Vercel)
+Repositori ini telah dikonfigurasikan dengan ekosistem pendeploisan moden:
+1. **Pembangunan:** Kod ditulis dan diuji secara tempatan (*local*) di dalam VS Code.
+2. **Sinkronisasi:** Setiap kali `git push` dilakukan ke cawangan (*branch*) `main`, GitHub akan mengemas kini kod sumber.
+3. **Automasi Vercel:** Vercel secara automatik menangkap perubahan tersebut, menjalankan proses *build*, dan melancarkan versi web dinamik yang terkini ke domain **braderdin.vercel.app** dalam masa beberapa saat sahaja.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+<p align="center">Ditulis dengan penuh minat • Dipersembahkan oleh braderdin</p>
