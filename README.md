@@ -1,4 +1,4 @@
-# 🚀 Status Web Dinamik — Projek Pertama Saya
+# 🚀 Projek Web Dinamik & Hub Komuniti Retro — Projek Pertama Saya
 
 <p align="center">
   <a href="https://braderdin.vercel.app/">
@@ -11,11 +11,27 @@
 ### 👨‍💻 Mengenai Projek Ini
 Ini adalah **laman web dinamik pertama saya**! Selepas sekian lama membina laman web statik, projek ini merupakan langkah kanan saya untuk menerokai dunia *Full-Stack development*. Sistem ini dibina berasaskan **Next.js** dan dihubungkan secara *live* terus ke pangkalan data awan **Supabase** untuk pengekalan data dinamik.
 
+✨ **Visi Masa Depan (Skop Projek):**
+Projek ini sedang berevolusi menjadi sebuah **platform media sosial & pembina laman web retro (Web-Building Community ala Neocities) pertama dalam Bahasa Melayu**! Sasaran saya adalah untuk mewujudkan satu ruang digital yang mesra, comel, dan santai bagi komuniti tempatan mula belajar dan membina halaman web kreatif mereka sendiri menggunakan gabungan HTML, CSS, dan JavaScript.
+
+---
+
+### 🏗️ Seni Bina Sistem (Combine Free Tier Architecture)
+Untuk mengelakkan kekangan had kuota (*limit*) storan pangkalan data apabila komuniti membesar, projek ini menggunakan strategi integrasi multi-awan (*cross-cloud integration*) yang sangat optimum:
+* **Next.js (App Router):** Bertindak sebagai nadi utama pemprosesan frontend editor dan sistem *Dynamic Routing* paparan laman pengguna.
+* **Supabase (Auth & Database):** Menguruskan sistem log masuk pengguna secara selamat serta menyimpan metadata profil.
+* **Cloudflare R2 (Object Storage):** Menyediakan ruang storan **10GB Percuma** tanpa had jalur lebar (*bandwidth limit*) untuk menyimpan fail web `.html`, `.css`, dan `.js` milik komuniti.
+
+---
+
 ### 🛠️ Tech Stack & Alatan Yang Digunakan
-| Frontend & Framework | Backend & Database | Pendeploisan (Deployment) |
-| :--- | :--- | :--- |
-| ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat&logo=css3&logoColor=white) | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white) | ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=flat&logo=vercel&logoColor=white) |
-| ![JavaScript](https://img.shields.io/badge/javascript-%23F7DF1E.svg?style=flat&logo=javascript&logoColor=black) ![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=next.js&logoColor=white) | ![Python](https://img.shields.io/badge/python-3776AB?style=flat&logo=python&logoColor=white) *(Asas)* | ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=flat&logo=github&logoColor=white) |
+
+| Komponen | Teknologi & Alatan Yang Digunakan |
+| :--- | :--- |
+| **Frontend & Framework** | ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23F7DF1E.svg?style=flat&logo=javascript&logoColor=black) ![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=next.js&logoColor=white) |
+| **Pangkalan Data & Storan** | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white) ![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=flat&logo=cloudflare&logoColor=white) *(R2 Storan 10GB)* |
+| **Bahasa Backend Lain** | ![Python](https://img.shields.io/badge/python-3776AB?style=flat&logo=python&logoColor=white) *(Dirancang untuk fungsi keselamatan & penapisan kod backend)* |
+| **Ekosistem & Pendeploisan** | ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=flat&logo=vercel&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=flat&logo=github&logoColor=white) ![VS Code](https://img.shields.io/badge/Visual_Studio_Code-007ACC?style=flat&logo=visual-studio-code&logoColor=white) |
 
 ---
 
