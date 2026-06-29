@@ -8,6 +8,7 @@ export default function MenuNavigasiSiber() {
     { nama: "🏠 Teraju Utama", pautan: "/" },
     { nama: "🌐 Jelajah Kampung", pautan: "/jelajah" }, // ➔ Laluan ke direktori warga
     { nama: "📜 Kitab HTML", pautan: "/kitab" },         // ➔ Laluan ke tutorial siber
+    { nama: "🎨 Kitab Grafik", pautan: "/kitab_grafik" }, // ➔ KUNCI BARU: Pintu masuk ke Studio GIF & Hiasan Retro!
   ];
 
   return (

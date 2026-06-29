@@ -183,6 +183,7 @@ export default function Home() {
           <span className="hidden sm:inline">|</span>
           <Link href="/jelajah" className="hover:text-white transition-colors">🌐 DIREKTORI</Link>
           <Link href="/kitab" className="hover:text-white transition-colors">📜 KITAB_HTML</Link>
+          <Link href="/kitab_grafik" className="hover:text-white transition-colors">🎨 KITAB_GRAFIK</Link> {/* ➔ Suntikan Baru Selesai Disatukan */}
         </div>
 
         <ButangGoogleLogin user={user} handleLogin={handleLoginGoogle} handleLogout={handleLogout} />
