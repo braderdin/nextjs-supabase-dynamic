@@ -2,9 +2,9 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
 import Link from 'next/link'; 
 
-// ➔ JALAN PENYELAMAT: Pastikan ada EMAS 4 kali (../../../../) supaya sampai ke folder components
-import KomponenKomenDanKaunter from "../../../../components/KomponenKomenDanKaunter"; 
-import WidgetJiranIntim from "../../../../components/WidgetJiranIntim"; 
+// ➔ PENYELESAIAN ABADI: Guna Absolute Import (@/) untuk elak pening mengira anak tangga folder!
+import KomponenKomenDanKaunter from "@/components/KomponenKomenDanKaunter"; 
+import WidgetJiranIntim from "@/components/WidgetJiranIntim"; 
 
 const r2Client = new S3Client({
   region: "auto",
