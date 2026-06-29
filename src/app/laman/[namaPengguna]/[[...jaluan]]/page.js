@@ -1,8 +1,8 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
-import Link from 'next/link'; 
-import KomponenKomenDanKaunter from "../../../components/KomponenKomenDanKaunter";
-import WidgetJiranIntim from "../../../components/WidgetJiranIntim";
+import Link from 'next/link'; // ➔ PEMBAIKAN 1: Dipastikan 'next/link' yang sah
+import KomponenKomenDanKaunter from "../../../../components/KomponenKomenDanKaunter"; // ➔ PEMBAIKAN 2: Ditukar ke 4 tingkat (../../../../)
+import WidgetJiranIntim from "../../../../components/WidgetJiranIntim"; // ➔ PEMBAIKAN 3: Ditukar ke 4 tingkat (../../../../)
 
 const r2Client = new S3Client({
   region: "auto",
@@ -21,9 +21,9 @@ async function tukarStreamKeTeks(stream) {
   const chunks = [];
   for await (const chunk of stream) {
     chunks.push(chunk);
-  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+  } 
   return Buffer.concat(chunks).toString("utf8");
-} // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+} 
 
 export default async function LamanWargaSiber({ params }) {
   const resolvedParams = await params;
