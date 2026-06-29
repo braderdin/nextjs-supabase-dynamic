@@ -1,8 +1,10 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
-import Link from 'next/link'; // ➔ PEMBAIKAN 1: Dipastikan 'next/link' yang sah
-import KomponenKomenDanKaunter from "../../../../components/KomponenKomenDanKaunter"; // ➔ PEMBAIKAN 2: Ditukar ke 4 tingkat (../../../../)
-import WidgetJiranIntim from "../../../../components/WidgetJiranIntim"; // ➔ PEMBAIKAN 3: Ditukar ke 4 tingkat (../../../../)
+import Link from 'next/link'; 
+
+// ➔ JALAN PENYELAMAT: Pastikan ada EMAS 4 kali (../../../../) supaya sampai ke folder components
+import KomponenKomenDanKaunter from "../../../../components/KomponenKomenDanKaunter"; 
+import WidgetJiranIntim from "../../../../components/WidgetJiranIntim"; 
 
 const r2Client = new S3Client({
   region: "auto",
