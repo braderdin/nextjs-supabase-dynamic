@@ -4,11 +4,14 @@ import { usePathname } from 'next/navigation';
 export default function MenuNavigasiSiber() {
   const pathname = usePathname();
 
+  // ➔ SUNTIKAN KUNCI BARU: Ditambah laluan ke Pondok Siber & Surat Layang
   const senaraiMenu = [
     { nama: "🏠 Teraju Utama", pautan: "/" },
     { nama: "🌐 Jelajah Kampung", pautan: "/jelajah" },
     { nama: "📜 Kitab HTML", pautan: "/kitab" },
     { nama: "🎨 Kitab Grafik", pautan: "/kitab_grafik" },
+    { nama: "⛺ Pondok Siber", pautan: "/pondok" },      // Pintu masuk BBS Forum
+    { nama: "📨 Surat Layang", pautan: "/surat-layang" }, // Pintu masuk Realtime DM
   ];
 
   return (
@@ -18,7 +21,7 @@ export default function MenuNavigasiSiber() {
           🧭 MENU_UTAMA.SYS :
         </div>
         
-        {/* ➔ SUNTIKAN PENGINDAHAN MOBILE: Ditukar kepada grid-cols-2 pada skrin telefon */}
+        {/* Susunan grid-cols-2 automatik membahagi 6 butang dengan seimbang pada skrin telefon */}
         <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap flex-1 gap-2">
           {senaraiMenu.map((menu, indeks) => {
             const adakahAktif = pathname === menu.pautan;
