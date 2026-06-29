@@ -11,22 +11,18 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function HubSuratLayang() {
-  // --- STATE PENGGUNA ---
   const [user, setUser] = useState(null);
   const [profilSemasa, setProfilSemasa] = useState(null);
   const [senaraiWarga, setSenaraiWarga] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- STATE SEMBANG (CHAT THREAD) ---
   const [jiranDipilih, setJiranDipilih] = useState(null);
   const [logMesej, setLogMesej] = useState([]);
   const [teksMesej, setTeksMesej] = useState("");
   const [loadingChat, setLoadingChat] = useState(false);
 
-  // Ref untuk paksa skrin auto-scroll ke bawah apabila mesej baru masuk
   const hujungSembangRef = useRef(null);
 
-  // 1. Muat Turun Sesi Auth & Senarai Warga Kampung
   useEffect(() => {
     async function inisialisasiPetiSurat() {
       try {
@@ -34,7 +30,6 @@ export default function HubSuratLayang() {
         setUser(currentUser);
 
         if (currentUser) {
-          // A. Dapatkan profil username sendiri
           const { data: profil } = await supabase
             .from('warga_profil')
             .select('*')
@@ -42,7 +37,6 @@ export default function HubSuratLayang() {
             .maybeSingle();
           setProfilSemasa(profil);
 
-          // B. Tarik semua warga kampung lain untuk senarai sembang
           const { data: warga } = await supabase
             .from('warga_profil')
             .select('*')
@@ -59,7 +53,6 @@ export default function HubSuratLayang() {
     inisialisasiPetiSurat();
   }, []);
 
-  // 2. Muat Turun Log Mesej Sembang Apabila Rakan Dipilih & Buka Saluran Realtime
   useEffect(() => {
     if (!user || !jiranDipilih) return;
 
@@ -79,7 +72,6 @@ export default function HubSuratLayang() {
 
     ambilLogSembang();
 
-    // ➔ TUNTUTAN UTAMA: Pasang Suis Supabase Realtime Channel
     const saluranRealtime = supabase
       .channel(`bilik_dm_${jiranDipilih.id}`)
       .on(
@@ -87,7 +79,6 @@ export default function HubSuratLayang() {
         { event: 'INSERT', schema: 'public', table: 'surat_layang' },
         (payload) => {
           const dataBaru = payload.new;
-          // Pastikan mesej yang masuk adalah milik pasangan sembang aktif sahaja
           if (
             (dataBaru.pengirim_id === user.id && dataBaru.penerima_id === jiranDipilih.id) ||
             (dataBaru.pengirim_id === jiranDipilih.id && dataBaru.penerima_id === user.id)
@@ -98,24 +89,21 @@ export default function HubSuratLayang() {
       )
       .subscribe();
 
-    // Tutup suis saluran apabila bilik sembang ditutup/ditukar demi penjimatan RAM
     return () => {
       supabase.removeChannel(saluranRealtime);
     };
   }, [jiranDipilih, user]);
 
-  // 3. Auto Scroll ke Mesej Terbaharu
   useEffect(() => {
     hujungSembangRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logMesej]);
 
-  // 4. Logik Menembak Surat Layang (Hantar DM)
   async function handleHantarMesej(e) {
     e.preventDefault();
     if (!user || !jiranDipilih || !teksMesej.trim()) return;
 
     const salinanTeks = teksMesej;
-    setTeksMesej(""); // Kosongkan input serta-merta untuk kelancaran UI
+    setTeksMesej("");
 
     const { error } = await supabase
       .from('surat_layang')
@@ -127,7 +115,7 @@ export default function HubSuratLayang() {
 
     if (error) {
       alert("❌ Surat layang gagal dihantar terbang. Cuba lagi!");
-      setTeksMesej(salinanTeks); // Kembalikan teks jika gagal
+      setTeksMesej(salinanTeks);
     }
   }
 
@@ -151,8 +139,8 @@ export default function HubSuratLayang() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch flex-1 min-h-[500px]">
           
-          {/* PANEL KIRI: SENARAI RAKAN TETANGGA KAMPUNG */}
-          <div className="bg-slate-900 border-2 border-slate-800 flex flex-col shadow-[4px_4px_0px_0px_#3b82f6]">
+          {/* PANEL KIRI: SENARAI JIRAN (Disembunyikan pada mobile jika jiran sudah dipilih) */}
+          <div className={`bg-slate-900 border-2 border-slate-800 flex flex-col shadow-[4px_4px_0px_0px_#3b82f6] ${jiranDipilih ? 'hidden md:flex' : 'flex'}`}>
             <div className="bg-slate-800 px-3 py-1.5 border-b border-slate-800 font-mono text-[11px] text-slate-300 select-none uppercase tracking-wider">
               👥 Direktori Jiran Aktif
             </div>
@@ -183,24 +171,32 @@ export default function HubSuratLayang() {
             </div>
           </div>
 
-          {/* PANEL KANAN: KOTAK TERMINAL MONOKROM HIJAU CRT */}
-          <div className="md:col-span-2 flex flex-col bg-black border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] relative overflow-hidden">
+          {/* PANEL KANAN: KOTAK TERMINAL MONOKROM HIJAU CRT (Disembunyikan pada mobile jika belum ada jiran dipilih) */}
+          <div className={`md:col-span-2 flex flex-col bg-black border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] relative overflow-hidden ${jiranDipilih ? 'flex' : 'hidden md:flex'}`}>
             
-            {/* Efek Garisan Kaca Scanline Monitor Purba */}
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-emerald-950/5 to-transparent bg-[length:100%_4px] opacity-20" />
 
             {/* Terminal Top Bar */}
             <div className="bg-emerald-950/40 border-b border-emerald-800 px-4 py-2 flex items-center justify-between font-mono text-xs text-emerald-400 select-none">
               <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>TERMINAL_DM.EXEv1.0</span>
+                {/* ➔ TOMBOL BARU UNTUK MOBILE: Boleh patah balik ke senarai jiran */}
+                {jiranDipilih && (
+                  <button 
+                    onClick={() => setJiranDipilih(null)}
+                    className="md:hidden bg-emerald-900 border border-emerald-500 text-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight active:scale-95"
+                  >
+                    ⬅️ Jiran
+                  </button>
+                )}
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse hidden sm:inline-block" />
+                <span className="text-[10px] sm:text-xs">TERMINAL_DM.EXE</span>
               </span>
-              <span>
-                {jiranDipilih ? `CONNECTED_TO: @${jiranDipilih.username.toUpperCase()}` : "STATUS: IDLE"}
+              <span className="text-[10px] sm:text-xs truncate max-w-[150px] sm:max-w-none">
+                {jiranDipilih ? `CONN: @${jiranDipilih.username.toUpperCase()}` : "STATUS: IDLE"}
               </span>
             </div>
 
-            {/* Ruangan Paparan Log Sembang Mesej Hijau */}
+            {/* Ruangan Paparan Log Sembang Mesej */}
             <div className="flex-1 p-4 font-mono text-xs overflow-y-auto space-y-4 text-emerald-400 min-h-[350px] max-h-[400px] md:max-h-[450px]">
               {!user && (
                 <div className="text-center text-[11px] text-emerald-700 py-12">
@@ -221,7 +217,7 @@ export default function HubSuratLayang() {
 
               {user && jiranDipilih && !loadingChat && logMesej.length === 0 && (
                 <div className="text-center text-emerald-700 border border-dashed border-emerald-900/60 p-4 bg-emerald-950/10">
-                  [ Talian selamat diwujudkan. Belum ada rekod surat layang ditukarkan. Sila taip arahan input di bawah. ]
+                  [ Talian selamat diwujudkan. Belum ada rekod surat layang ditukarkan. ]
                 </div>
               )}
 
@@ -230,14 +226,12 @@ export default function HubSuratLayang() {
                 return (
                   <div 
                     key={msg.id} 
-                    className={`flex flex-col max-w-[85%] space-y-1 ${adakahSaya ? "ml-auto items-end" : "mr-auto items-start"}`}
+                    className={`flex flex-col max-w-[90%] sm:max-w-[85%] space-y-1 ${adakahSaya ? "ml-auto items-end" : "mr-auto items-start"}`}
                   >
-                    {/* Timestamp & Tag Terminal */}
                     <span className="text-[9px] text-emerald-600 font-bold uppercase">
                       {adakahSaya ? `[ YOU ]` : `[ @${jiranDipilih.username} ]`} — {new Date(msg.created_at).toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'})}
                     </span>
-                    {/* Kotak Mesej Terminal Hijau */}
-                    <div className={`p-3 border leading-relaxed text-[11.5px] break-all ${
+                    <div className={`p-2.5 border leading-relaxed text-[11px] sm:text-[11.5px] break-all ${
                       adakahSaya 
                         ? "bg-emerald-950/20 border-emerald-500/60 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)]" 
                         : "bg-slate-950 border-emerald-800 text-emerald-400"
@@ -250,7 +244,7 @@ export default function HubSuratLayang() {
               <div ref={hujungSembangRef} />
             </div>
 
-            {/* Kotak Input Penghantaran Mesej Terminal */}
+            {/* Kotak Input Penghantaran Mesej */}
             {user && jiranDipilih && (
               <form onSubmit={handleHantarMesej} className="p-3 bg-black border-t border-emerald-800 flex gap-2">
                 <div className="text-emerald-500 font-bold font-mono text-xs flex items-center pl-1 select-none">
@@ -259,16 +253,16 @@ export default function HubSuratLayang() {
                 <input 
                   type="text"
                   required
-                  placeholder="Masukkan rentetan mesej siber sedia hantar..."
+                  placeholder="Taip mesej..."
                   value={teksMesej}
                   onChange={(e) => setTeksMesej(e.target.value)}
                   className="flex-1 bg-black text-emerald-400 placeholder-emerald-900 font-mono text-xs p-2 focus:outline-none focus:ring-0 focus:border-transparent"
                 />
                 <button 
                   type="submit"
-                  className="bg-emerald-950 hover:bg-emerald-500 text-emerald-400 hover:text-black font-mono font-black border border-emerald-500 text-[10px] uppercase px-4 py-2 transition-all shadow-[0_0_6px_rgba(16,185,129,0.2)] active:scale-95"
+                  className="bg-emerald-950 hover:bg-emerald-500 text-emerald-400 hover:text-black font-mono font-black border border-emerald-500 text-[10px] uppercase px-3 sm:px-4 py-2 transition-all active:scale-95"
                 >
-                  EXECUTE
+                  SEND
                 </button>
               </form>
             )}
@@ -279,7 +273,7 @@ export default function HubSuratLayang() {
 
       </div>
 
-      <footer className="py-4 text-center text-[10px] font-mono text-slate-600 border-t border-slate-900 mt-12 select-none">
+      <footer className="py-4 text-center text-[10px] font-mono text-slate-600 border-t border-slate-900 mt-12">
         Kampung Siber Komuniti • Dipersembahkan oleh braderdin dengan penuh minat
       </footer>
     </div>
