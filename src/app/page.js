@@ -81,33 +81,37 @@ export default function Home() {
     }
   }
 
-  // Mengendalikan penciptaan item fizikal ke Cloudflare R2
-  async function handleCiptaItemFizikal(namaItem, jenisItem, laluanFullItem) {
+  // Mengendalikan penciptaan item fizikal ke Cloudflare R2 dengan pengesan ralat tegar
+  async function handleCiptaItemFizikal(namaItem, jenisItem, laluanFullItem, isiKandungan = "") {
     try {
-      if (jenisItem === 'fail') {
-        await fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            namaPengguna, 
-            kodHtml: ``, // ➔ Memberi starter pack teks agar lolos Zod
-            pathFailBaru: laluanFullItem 
-          }),
-        });
-      } else {
-        await fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            namaPengguna, 
-            kodHtml: "FOLDER_PLACEHOLDER", 
-            pathFailBaru: `${laluanFullItem}/.keep` 
-          }),
-        });
+      const payloadHtml = jenisItem === 'fail' 
+        ? (isiKandungan.trim() || `<!-- Fail ${namaItem} Baharu -->`) 
+        : "FOLDER_PLACEHOLDER";
+
+      const pathHantar = jenisItem === 'fail' ? laluanFullItem : `${laluanFullItem}/.keep`;
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          namaPengguna, 
+          kodHtml: payloadHtml, 
+          pathFailBaru: pathHantar 
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!data.success) {
+        // ➔ AKSI KRITIKAL: Memapar ralat Zod / R2 jika request disekat server
+        alert(`❌ Gagal Cipta Item: ${data.message || data.error || "Ralat pelayan"}`);
+        return;
       }
+
+      // Jika berjaya, segarkan grid R2
       await muatSenaraiFailDaripadaR2(namaPengguna);
     } catch (e) {
-      console.error(e);
+      alert(`❌ Ralat Sistem Fail: ${e.message}`);
     }
   }
 

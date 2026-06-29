@@ -12,6 +12,7 @@ export default function PengurusFailGrid({
 }) {
   const [folderSemasa, setFolderSemasa] = useState(""); 
   const [inputNamaBaru, setInputNamaBaru] = useState("");
+  const [isiFailBaru, setIsiFailBaru] = useState(""); // ➔ SUNTIKAN BARU: Memegang kandungan kod awal fail
   const [modCipta, setModCipta] = useState(null); 
 
   const EKSTENSI_DIBENARKAN = [
@@ -46,16 +47,18 @@ export default function PengurusFailGrid({
         alert(`❌ Akses Ditolak! Sila gunakan ekstensi statik web yang sah sahaja.\n\nEkstensi dibenarkan: ${EKSTENSI_DIBENARKAN.join(', ')}`);
         return;
       }
-      if (onCiptaItem) onCiptaItem(namaBersih, 'fail', laluanFull);
+      // ➔ Hantar sekali isi kandungan teks ke fungsi induk
+      if (onCiptaItem) onCiptaItem(namaBersih, 'fail', laluanFull, isiFailBaru);
     } else if (modCipta === 'folder') {
       if (namaBersih.includes('.')) {
-        alert("⚠️ Folder tak boleh ada tanda titik (.) abangku!");
+        alert("⚠️ Folder tidak boleh mengandungi simbol titik (.) abangku!");
         return;
       }
-      if (onCiptaItem) onCiptaItem(namaBersih, 'folder', laluanFull);
+      if (onCiptaItem) onCiptaItem(namaBersih, 'folder', laluanFull, "");
     }
 
     setInputNamaBaru("");
+    setIsiFailBaru(""); // Reset kotak teks
     setModCipta(null);
   }
 
@@ -115,20 +118,40 @@ export default function PengurusFailGrid({
         </div>
       </div>
 
+      {/* BORANG DINAMIK: INPUT NAMA & KOTAK TEXT CIPTA FAIL */}
       {modCipta && (
-        <form onSubmit={handleCiptaEntiti} className="p-3 bg-slate-950 border-b border-slate-850 flex items-center gap-2 animate-fadeIn">
-          <span className="text-yellow-500 font-bold">Nama {modCipta === 'fail' ? 'Fail' : 'Folder'}:</span>
-          <input 
-            type="text"
-            autoFocus
-            required
-            placeholder={modCipta === 'fail' ? "cth: portfolio.html, gaya.css" : "cth: imej, arkib"}
-            value={inputNamaBaru}
-            onChange={(e) => setInputNamaBaru(e.target.value)}
-            className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-mono"
-          />
-          <button type="submit" className="bg-slate-850 border border-slate-700 hover:border-yellow-500 px-3 py-1 text-[11px] font-bold uppercase">Cipta</button>
-          <button type="button" onClick={() => setModCipta(null)} className="text-red-400 hover:text-white px-1">❌</button>
+        <form onSubmit={handleCiptaEntiti} className="p-4 bg-slate-950 border-b border-slate-850 space-y-3 animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-500 font-bold whitespace-nowrap">Nama {modCipta === 'fail' ? 'Fail' : 'Folder'}:</span>
+            <input 
+              type="text"
+              autoFocus
+              required
+              placeholder={modCipta === 'fail' ? "cth: portfolio.html, tema.css" : "cth: imej, arkib"}
+              value={inputNamaBaru}
+              onChange={(e) => setInputNamaBaru(e.target.value)}
+              className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-mono"
+            />
+          </div>
+
+          {/* HANYA MUNCUL JIKA MOD CIPTA ADALAH FAIL */}
+          {modCipta === 'fail' && (
+            <div className="space-y-1">
+              <span className="text-emerald-400 block text-[10px] uppercase font-bold tracking-wider">Isi Kandungan Fail / Kod Awal (Opsional):</span>
+              <textarea 
+                rows={5}
+                placeholder="<!-- Tampal atau taip kod HTML/CSS abang di sini... -->"
+                value={isiFailBaru}
+                onChange={(e) => setIsiFailBaru(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 p-2 font-mono text-xs text-yellow-300 focus:outline-none focus:border-emerald-500 resize-none"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={() => setModCipta(null)} className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 px-3 py-1 text-[11px] uppercase">Batal</button>
+            <button type="submit" className="bg-slate-900 border border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-500 px-4 py-1 text-[11px] font-bold uppercase transition-all">Pacak Item</button>
+          </div>
         </form>
       )}
 
