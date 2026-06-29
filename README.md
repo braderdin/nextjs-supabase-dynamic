@@ -1,7 +1,7 @@
 # 🚀 Projek Web Dinamik & Hub Komuniti Retro — Projek Pertama Saya
 
 <p align="center">
-  <a href="https://braderdin.vercel.app/">
+  <a href="https://terataksiber.vercel.app/">
     <img src="https://img.shields.io/badge/LIVE_DEMO-https://braderdin.vercel.app/-0070f3?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
   </a>
 </p>
