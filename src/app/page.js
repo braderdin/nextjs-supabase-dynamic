@@ -34,10 +34,12 @@ export default function Home() {
   const [statusR2, setStatusR2] = useState("");
   const [lamanBerjaya, setLamanBerjaya] = useState("");
 
-  // ➔ TAMBAHAN STATE: Peti Surat Ikatan Jiran
+  // ➔ TAMBAHAN STATE: Peti Surat Ikatan Jiran & Top 8
   const [permintaanJiran, setPermintaanJiran] = useState([]);
+  const [senaraiJiranIntim, setSenaraiJiranIntim] = useState([]);
+  const [inputSlot, setInputSlot] = useState({}); // Menyimpan input teks sementara bagi setiap slot
 
-  // ➔ TAMBAHAN FUNGSI: Ambil permohonan jiran berstatus pending untuk akaun ini
+  // Ambil permohonan jiran berstatus pending untuk akaun ini
   async function ambilPermintaanJiran(usernameAkaun) {
     try {
       const { data, error } = await supabase
@@ -54,7 +56,24 @@ export default function Home() {
     }
   }
 
-  // ➔ TAMBAHAN FUNGSI: Logik Terima atau Tolak Permintaan Jiran
+  // ➔ TAMBAHAN FUNGSI: Ambil senarai Top 8 Jiran Intim dari Supabase
+  async function ambilJiranIntim(userId) {
+    try {
+      const { data, error } = await supabase
+        .from('jiran_intim')
+        .select('*')
+        .eq('user_id', userId)
+        .order('slot_kedudukan', { ascending: true });
+
+      if (!error && data) {
+        setSenaraiJiranIntim(data);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data jiran intim.");
+    }
+  }
+
+  // Logik Terima atau Tolak Permintaan Jiran
   async function handleUrusJiran(idRekod, statusBaru) {
     try {
       const { error } = await supabase
@@ -63,9 +82,7 @@ export default function Home() {
         .eq('id', idRekod);
 
       if (!error) {
-        // Buang rekod dari paparan peti surat serta-merta selepas diuruskan
         setPermintaanJiran(prev => prev.filter(item => item.id !== idRekod));
-        
         if (statusBaru === 'accepted') {
           alert("🤝 Alhamdulillah bang! Ikatan Rakan Tetangga berjaya termaktub!");
         } else {
@@ -76,6 +93,65 @@ export default function Home() {
       }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  // ➔ TAMBAHAN FUNGSI: Simpan/Kunci Jiran ke Slot Pilihan
+  async function handleKunciJiranIntim(nomborSlot) {
+    const targetUsername = inputSlot[nomborSlot]?.toLowerCase().trim();
+    if (!targetUsername) {
+      alert("⚠️ Sila isi nama teratak jiran terlebih dahulu bang!");
+      return;
+    }
+
+    // A. Sahkan sama ada jiran tersebut wujud dalam kampung siber
+    const { data: jiranWujud } = await supabase
+      .from('warga_profil')
+      .select('id')
+      .eq('username', targetUsername)
+      .maybeSingle();
+
+    if (!jiranWujud) {
+      alert(`❌ Alamak bang! Teratak @${targetUsername} tiada dalam direktori.`);
+      return;
+    }
+
+    // B. Masukkan ke dalam database jiran_intim
+    const { error } = await supabase
+      .from('jiran_intim')
+      .insert({
+        user_id: user.id,
+        jiran_username: targetUsername,
+        slot_kedudukan: nomborSlot
+      });
+
+    if (!error) {
+      alert(`🎉 Mantap! @${targetUsername} berjaya dikunci pada Slot ${nomborSlot}.`);
+      setInputSlot(prev => ({ ...prev, [nomborSlot]: "" }));
+      await ambilJiranIntim(user.id);
+    } else {
+      if (error.code === '23505') {
+        alert("❌ Ralat: Slot ini sudah diisi atau jiran tersebut sudah tersenarai di slot lain.");
+      } else {
+        alert(`❌ Ralat Sistem: ${error.message}`);
+      }
+    }
+  }
+
+  // ➔ TAMBAHAN FUNGSI: Padam Jiran dari Slot
+  async function handlePadamJiranIntim(idRekod) {
+    const sah Padam = window.confirm("⚠️ Anda pasti ingin mengosongkan slot jiran intim ini?");
+    if (!sah Padam) return;
+
+    const { error } = await supabase
+      .from('jiran_intim')
+      .delete()
+      .eq('id', idRekod);
+
+    if (!error) {
+      setSenaraiJiranIntim(prev => prev.filter(item => item.id !== idRekod));
+    } else {
+      alert("❌ Gagal mengosongkan slot.");
     }
   }
 
@@ -92,8 +168,9 @@ export default function Home() {
       setNamaPengguna(data.username); // Otomatik mengunci nama folder mengikut username unik mereka
       setHasProfil(true);
       
-      // ➔ TAMBAHAN: Panggil fungsi semak peti surat sebaik sahaja profil disahkan
+      // Panggil fungsi semak peti surat & jiran intim sebaik sahaja profil disahkan
       await ambilPermintaanJiran(data.username);
+      await ambilJiranIntim(currentUser.id);
       
       // ➔ SUNTIKAN MAGIS: Tarik kod sedia ada dari R2 supaya boleh terus di-edit semula!
       try {
@@ -139,6 +216,7 @@ export default function Home() {
         setHasProfil(false);
         setNamaPengguna("");
         setPermintaanJiran([]);
+        setSenaraiJiranIntim([]);
         setKodHtml("<h1>Selamat Datang Ke Teratak Saya!</h1>\n<p>Laman web ini dibina menggunakan HTML & CSS comel.</p>");
       }
     });
@@ -245,7 +323,6 @@ export default function Home() {
         {/* ========================================================= */}
         {!user && (
           <div className="space-y-8 transition-all duration-300">
-            {/* KOTAK PROMOSI GERGASI DI CENTER LAMAN WEB */}
             <div className="text-center p-8 md:p-12 bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] max-w-3xl mx-auto relative overflow-hidden">
               <div className="absolute top-0 left-0 bg-blue-600 text-slate-950 px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider">📢 Hebahan Utama</div>
               <h2 className="text-2xl md:text-4xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-pink-400 to-yellow-300 tracking-tight leading-tight uppercase">
@@ -261,7 +338,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* PAPARAN SENARAI TERATAK REAL-TIME SEBENAR (TIADA DATA TIPU) */}
             <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#ec4899] max-w-2xl mx-auto">
               <div className="bg-slate-800 px-3 py-1.5 border-b border-slate-800 font-mono text-[10px] text-slate-400 select-none uppercase tracking-wider">
                 ✨ Teratak Warga Siber Yang Baru Dikemas Kini secara Live:
@@ -315,7 +391,7 @@ export default function Home() {
 
             <MenuNavigasiSiber />
 
-            {/* ➔ TAMBAHAN UI: PETI SURAT NOTIFIKASI JIRAN TETANGGA (RETRO BOX) */}
+            {/* PETI SURAT NOTIFIKASI JIRAN TETANGGA */}
             {permintaanJiran.length > 0 && (
               <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#ec4899] animate-fadeIn">
                 <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-[11px] text-slate-300 select-none">
@@ -323,7 +399,6 @@ export default function Home() {
                   <span className="text-[9px] text-pink-400 font-bold animate-pulse">PERMOHONAN BARU</span>
                 </div>
                 <div className="p-4 font-mono text-xs space-y-3">
-                  <p className="text-[11px] text-slate-400">[LOG SISTEM]: Warga berikut ingin menjalinkan ikatan kejiranan dengan teratak abang:</p>
                   <div className="space-y-2">
                     {permintaanJiran.map((jiran) => (
                       <div key={jiran.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-950 border border-slate-850 gap-2">
@@ -351,6 +426,60 @@ export default function Home() {
                 </div>
               </div>
             )}
+
+            {/* ➔ TAMBAHAN UI: PANEL PENGURUS JIRAN INTIM TOP 8 (RETRO STYLE) */}
+            <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308]">
+              <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-[11px] text-slate-300 select-none">
+                <span className="flex items-center gap-1.5">⚙️ pengurus_jiran_intim.exe (Top 8 Management)</span>
+                <span className="text-[9px] text-yellow-400 font-bold">SUSUN GRID MYSPACE</span>
+              </div>
+              <div className="p-4 font-mono text-xs">
+                <p className="text-[11px] text-slate-400 mb-4">
+                  [SUNTIKAN CIRI]: Tetapkan nama teratak jiran kegemaran abang mengikut slot 1 hingga 8 untuk dipaparkan di halaman umum.
+                </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Array.from({ length: 8 }, (_, i) => {
+                    const slotNum = i + 1;
+                    const jiranDitemui = senaraiJiranIntim.find(j => Number(j.slot_kedudukan) === slotNum);
+
+                    return (
+                      <div key={slotNum} className="bg-slate-950 border border-slate-850 p-2 flex items-center justify-between gap-2">
+                        <span className="text-slate-500 text-[11px] font-bold">Slot 0{slotNum}:</span>
+                        
+                        {jiranDitemui ? (
+                          <div className="flex-1 flex items-center justify-between pl-2 bg-slate-900 border border-slate-800/60 py-1">
+                            <span className="text-pink-400 font-bold">@{jiranDitemui.jiran_username}</span>
+                            <button
+                              onClick={() => handlePadamJiranIntim(jiranDitemui.id)}
+                              className="text-[9px] text-red-400 hover:text-white bg-slate-950 hover:bg-red-900 px-2 py-0.5 border border-slate-800 transition-colors uppercase font-bold"
+                            >
+                              Kosongkan
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex gap-1">
+                            <input
+                              type="text"
+                              placeholder="Nama teratak..."
+                              value={inputSlot[slotNum] || ""}
+                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
+                              className="flex-1 bg-slate-900 border border-slate-850 px-2 py-1 text-[11px] text-yellow-400 placeholder-slate-700 focus:outline-none"
+                            />
+                            <button
+                              onClick={() => handleKunciJiranIntim(slotNum)}
+                              className="bg-slate-900 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-slate-950 px-3 py-1 text-[9px] font-bold uppercase transition-all"
+                            >
+                              🔒 Kunci
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
 
             {/* EDITOR TERATAK PERIBADI YANG DIKUNCI IKUT USERNAME ASLI */}
             <BorangStudioKreatif 
