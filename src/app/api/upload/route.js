@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
+import { z } from "zod"; // ➔ Suntikan Zod untuk pengawal siber ketat
 
 // 1. Inisialisasi Hubungan R2 (Kekal menggunakan kunci .env.local asal abang)
 const r2Client = new S3Client({
@@ -9,6 +10,38 @@ const r2Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
+});
+
+// ==========================================
+// 🛡️ PENETAPAN SKEMA ZOD (VALIDATION SCHEMAS)
+// ==========================================
+
+// Skema tapisan untuk data GET
+const dapatkanWargaSchema = z.object({
+  username: z.string({ required_error: "Nama pengguna diperlukan abangku! ⚠️" })
+    .min(1, { message: "Nama pengguna tidak boleh kosong abangku! ⚠️" })
+});
+
+// Skema tapisan untuk data POST (Muat naik teratak peribadi)
+const muatNaikTeratakSchema = z.object({
+  namaPengguna: z.string({ required_error: "Nama pengguna diperlukan abangku! ⚠️" })
+    .min(3, { message: "Nama teratak mestilah sekurang-kurangnya 3 aksara abangku! ⚠️" })
+    .max(15, { message: "Nama teratak tidak boleh melebihi 15 aksara abangku! ⚠️" })
+    .regex(/^[a-zA-Z0-9]+$/, { message: "Nama teratak hanya boleh mengandungi huruf dan nombor sahaja! ⚠️" }),
+  
+  kodHtml: z.string({ required_error: "Kod HTML diperlukan abangku! ⚠️" })
+    .min(1, { message: "Kod HTML tidak boleh kosong abangku! ⚠️" })
+    // Tapisan 1: Sekatan saiz fail maksima 50KB (51200 Bytes)
+    .refine((val) => Buffer.byteLength(val, 'utf8') <= 51200, {
+      message: "⚠️ Teratak ditolak! Saiz kod HTML anda terlalu besar (Maksimum 50KB sahaja)."
+    })
+    // Tapisan 2: Sekatan XSS / Kod perosak berbahaya
+    .refine((val) => {
+      const corakBahaya = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|javascript:|onerror=|onload=/gi;
+      return !corakBahaya.test(val);
+    }, {
+      message: "❌ Amaran! Sistem mengesan ada kod larangan atau skrip berbahaya di dalam HTML anda."
+    })
 });
 
 // Fungsi pembantu untuk menukar penstriman data R2 (Stream) menjadi teks HTML biasa
@@ -26,9 +59,11 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username");
 
-    if (!username) {
+    // Lakukan validasi input menggunakan Zod
+    const semakInput = dapatkanWargaSchema.safeParse({ username });
+    if (!semakInput.success) {
       return NextResponse.json(
-        { success: false, message: "Nama pengguna diperlukan abangku! ⚠️" }, 
+        { success: false, message: semakInput.error.errors[0].message }, 
         { status: 400 }
       );
     }
@@ -49,7 +84,6 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    // Jika fail belum pernah dicipta, pulangkan status bersih supaya frontend tahu fail belum wujud
     return NextResponse.json({ 
       success: false, 
       message: "Fail belum wujud dalam direktori." 
@@ -60,33 +94,19 @@ export async function GET(request) {
 // ➔ FUNGSI POST: Menyimpan / mengemaskini fail ke R2 berserta tapisan keselamatan siber keras
 export async function POST(request) {
   try {
-    const { namaPengguna, kodHtml } = await request.json();
+    const dataBadan = await request.json();
 
-    if (!namaPengguna || !kodHtml) {
+    // Lakukan validasi struktur data penuh menggunakan Zod
+    const semakData = muatNaikTeratakSchema.safeParse(dataBadan);
+    if (!semakData.success) {
       return NextResponse.json(
-        { success: false, message: "Data tidak lengkap abangku! ⚠️" }, 
+        { success: false, message: semakData.error.errors[0].message }, 
         { status: 400 }
       );
     }
 
-    // A. SEKATAN SAIZ FIL: Semak saiz rentetan HTML (Maksimum 50KB = 51200 Bytes)
-    const saizKod = Buffer.byteLength(kodHtml, 'utf8');
-    if (saizKod > 51200) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "⚠️ Teratak ditolak! Saiz kod HTML anda terlalu besar (Maksimum 50KB sahaja)." 
-      }, { status: 400 });
-    }
-
-    // B. TAPISAN KOD PEROSAK: Sekat tag <script> atau pemicu fungsi XSS berbahaya
-    const corakBahaya = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|javascript:|onerror=|onload=/gi;
-    if (corakBahaya.test(kodHtml)) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "❌ Amaran! Sistem mengesan ada kod larangan atau skrip berbahaya di dalam HTML anda." 
-      }, { status: 400 });
-    }
-
+    // Jika lepas saringan Zod, ambil data yang bersih
+    const { namaPengguna, kodHtml } = semakData.data;
     const namaFail = `${namaPengguna.toLowerCase()}/index.html`;
 
     // C. Sediakan arahan muat naik fail menggunakan baldi R2 asal abang
