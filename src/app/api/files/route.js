@@ -54,11 +54,11 @@ export async function GET(request) {
       // Pastikan fail placeholder .keep milik folder kosong tidak tersenarai sebagai fail visual
       if (segmen[segmen.length - 1] === ".keep") return;
 
-      // Masukkan entiti fail ke dalam tatasusunan grid UI
+      // ➔ ✅ PEMBAIKAN JITU: Menggunakan laluanRelatif yang betul untuk mengelakkan ralat ReferenceError / Crash 500
       VFS.push({
         nama: segmen[segmen.length - 1],
         jenis: "fail",
-        laluanFull: jalurRelatif,
+        laluanFull: laluanRelatif,
       });
     });
 
@@ -66,7 +66,7 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-} // ➔ ✅ PEMBAIKAN JITU: Kurungan penutup fungsi GET yang tercicir kini selamat dipasang!
+}
 
 // ❌ DELETE: Menguruskan pemadaman fail tunggal atau pemadaman melata (cascading folder delete)
 export async function DELETE(request) {
