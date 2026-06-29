@@ -2,16 +2,16 @@
 
 import { useState } from 'react';
 
-export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
-  const [senaraiFail, setSenaraiFail] = useState([
-    { nama: "index.html", jenis: "fail", laluanFull: "index.html", kandungan: "<h1>Selamat Datang Ke Teratak Saya!</h1>" },
-    { nama: "style.css", jenis: "fail", laluanFull: "style.css", kandungan: "body { background-color: #020617; }" },
-    { nama: "gaya_retro", jenis: "folder", laluanFull: "gaya_retro", kandungan: "" },
-    { nama: "animasi.gif", jenis: "fail", laluanFull: "gaya_retro/animasi.gif", kandungan: "MOCK_BINARY_GIF_DATA" }
-  ]);
-
+export default function PengurusFailGrid({ 
+  senaraiFail = [], 
+  loadingFail = false, 
+  onFileSelect, 
+  onCiptaItem, 
+  onPadamItem, 
+  namaPengguna 
+}) {
   const [folderSemasa, setFolderSemasa] = useState(""); 
-  const [inputNamaBaru, setInputLengkap] = useState("");
+  const [inputNamaBaru, setInputNamaBaru] = useState("");
   const [modCipta, setModCipta] = useState(null); 
 
   const EKSTENSI_DIBENARKAN = [
@@ -23,7 +23,7 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
     if (pecahan.length < 2) return false; 
     const ekstensi = pecahan.pop().toLowerCase();
     return EKSTENSI_DIBENARKAN.includes(ekstensi);
-  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+  }
 
   function handleCiptaEntiti(e) {
     e.preventDefault();
@@ -36,6 +36,7 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
 
     const laluanFull = folderSemasa ? `${folderSemasa}/${namaBersih}` : namaBersih;
 
+    // Semak pertindihan nama objek
     if (senaraiFail.some(f => f.laluanFull.toLowerCase() === laluanFull.toLowerCase())) {
       alert("❌ Alamak bang! Fail atau folder dengan nama ini sudah wujud.");
       return;
@@ -43,46 +44,35 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
 
     if (modCipta === 'fail') {
       if (!sahkanKeselamatanFail(namaBersih)) {
-        alert(`❌ Akses Ditolak! Kampung Siber hanya menyokong fail laman web statik yang selamat sahaja.\n\nEkstensi dibenarkan: ${EKSTENSI_DIBENARKAN.join(', ')}`);
+        alert(`❌ Akses Ditolak! Sila gunakan ekstensi yang dibenarkan sahaja.\n\nEkstensi: ${EKSTENSI_DIBENARKAN.join(', ')}`);
         return;
       }
-      
-      setSenaraiFail(prev => [...prev, {
-        nama: namaBersih,
-        jenis: "fail",
-        laluanFull: laluanFull,
-        kandungan: `<!-- Fail ${namaBersih} Baru -->`
-      }]);
+      if (onCiptaItem) onCiptaItem(namaBersih, 'fail', laluanFull);
     } else if (modCipta === 'folder') {
       if (namaBersih.includes('.')) {
-        alert("⚠️ Folder tak boleh ada ekstensi titik (.) abangku!");
+        alert("⚠️ Folder tidak boleh mengandungi simbol titik (.) abangku!");
         return;
       }
-      setSenaraiFail(prev => [...prev, {
-        nama: namaBersih,
-        jenis: "folder",
-        laluanFull: laluanFull,
-        kandungan: ""
-      }]);
+      if (onCiptaItem) onCiptaItem(namaBersih, 'folder', laluanFull);
     }
 
-    setInputLengkap("");
+    setInputNamaBaru("");
     setModCipta(null);
-  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+  }
 
   function handlePadamEntiti(laluanTarget) {
-    const sahkan = window.confirm(`⚠️ Pastikan abang? Tindakan ini akan memadamkan rekod: ${laluanTarget}`);
+    const sahkan = window.confirm(`⚠️ Pasti abang? Tindakan ini akan memadamkan secara kekal dari Cloudflare R2: ${laluanTarget}`);
     if (!sahkan) return;
-
-    setSenaraiFail(prev => prev.filter(f => !f.laluanFull.startsWith(laluanTarget)));
-  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+    if (onPadamItem) onPadamItem(laluanTarget);
+  }
 
   function handlePatahBalik() {
     const pecahan = folderSemasa.split('/');
     pecahan.pop();
     setFolderSemasa(pecahan.join('/'));
-  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+  }
 
+  // Logik menapis paparan visual mengikut lapisan folder semasa pelawat
   const itemDipapar = senaraiFail.filter(item => {
     if (!folderSemasa) {
       return !item.laluanFull.includes('/');
@@ -97,7 +87,7 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
     <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#eab308] font-mono text-xs text-white">
       <div className="bg-slate-800 p-2 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 select-none">
         <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-xs truncate">
-          📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
+          📂 teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
         </div>
         
         <div className="flex gap-2">
@@ -124,6 +114,7 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
         </div>
       </div>
 
+      {/* BORANG MINI CIPTA FAIL/FOLDER */}
       {modCipta && (
         <form onSubmit={handleCiptaEntiti} className="p-3 bg-slate-950 border-b border-slate-850 flex items-center gap-2 animate-fadeIn">
           <span className="text-yellow-500 font-bold">Nama {modCipta === 'fail' ? 'Fail' : 'Folder'}:</span>
@@ -131,35 +122,44 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
             type="text"
             autoFocus
             required
-            placeholder={modCipta === 'fail' ? "cth: tentang.html, gaya.css" : "cth: imej, blog"}
+            placeholder={modCipta === 'fail' ? "cth: portfolio.html, tema.css" : "cth: imej, arkib"}
             value={inputNamaBaru}
-            onChange={(e) => setInputLengkap(e.target.value)}
-            className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500"
+            onChange={(e) => setInputNamaBaru(e.target.value)}
+            className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-mono"
           />
           <button type="submit" className="bg-slate-850 border border-slate-700 hover:border-yellow-500 px-3 py-1 text-[11px] font-bold uppercase">Cipta</button>
           <button type="button" onClick={() => setModCipta(null)} className="text-red-400 hover:text-white px-1">❌</button>
         </form>
       )}
 
-      <div className="p-4 md:p-6 bg-slate-950 min-h-[220px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
-        {itemDipapar.length === 0 && (
-          <div className="col-span-full text-center text-slate-600 font-mono text-[11px] py-12 select-none">
-            [ Folder ini kosong bersih. Sila ketuk "+ Fail" untuk menambah lembaran kod. ]
+      {/* GRID CONTAINER ITEM */}
+      <div className="p-4 md:p-6 bg-slate-950 min-h-[220px] grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+        
+        {loadingFail && (
+          <div className="col-span-full text-center text-slate-500 py-12 animate-pulse select-none">
+            🔄 Sedang menyegarkan struktur fail dari awan R2...
           </div>
         )}
 
-        {itemDipapar.map((item, indeks) => {
+        {!loadingFail && itemDipapar.length === 0 && (
+          <div className="col-span-full text-center text-slate-600 font-mono text-[11px] py-12 select-none">
+            [ Direktori kosong. Sila klik "+ Fail" untuk bermula abangku! ]
+          </div>
+        )}
+
+        {!loadingFail && itemDipapar.map((item, indeks) => {
           const adakahFolder = item.jenis === "folder";
           return (
             <div 
               key={indeks}
-              className="bg-slate-900 border-2 border-slate-850 hover:border-yellow-500 p-3 flex flex-col items-center justify-between text-center relative group transition-all select-none"
+              className="bg-slate-900 border-2 border-slate-850 hover:border-yellow-500 p-3 flex flex-col items-center justify-between text-center relative group transition-all select-none shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]"
             >
+              {/* Butang Padam Awan */}
               <button 
                 onClick={() => handlePadamEntiti(item.laluanFull)}
                 className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-950 border border-red-700 text-red-400 hover:bg-red-600 hover:text-white text-[9px] px-1 rounded transition-opacity"
               >
-                DEL
+                PADAM
               </button>
 
               <div 
@@ -169,7 +169,7 @@ export default function PengurusFailGrid({ onFileSelect, namaPengguna }) {
                 <span className="text-3xl mb-2 filter drop-shadow">
                   {adakahFolder ? "📁" : item.nama.endsWith('.gif') ? "🖼️" : "📄"}
                 </span>
-                <span className="text-[11.5px] font-bold text-slate-200 group-hover:text-yellow-400 truncate w-full px-1">
+                <span className="text-[11px] font-bold text-slate-200 group-hover:text-yellow-400 truncate w-full px-1">
                   {item.nama}
                 </span>
               </div>

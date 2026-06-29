@@ -60,7 +60,7 @@ const muatNaikTeratakSchema = z.object({
   if (ekstensi === 'html' || ekstensi === 'htm') {
     const corakBahaya = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|javascript:|onerror=|onload=/gi;
     return !corakBahaya.test(data.kodHtml);
-  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
+  }
   return true;
 }, {
   message: "❌ Amaran Keamanan! Sistem mengesan ada suntikan kod larangan berbahaya di dalam fail HTML anda.",
@@ -75,10 +75,13 @@ async function tukarStreamKeTeks(stream) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+// ➔ GET: Versi Dinamik Berasaskan Parameter Path dari UI Grid
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username");
+    // ➔ SUNTIKAN DINAMIK: Terima parameter path fail spesifik dari UI grid
+    const pathSpesifik = searchParams.get("path") || "index.html";
 
     const semakInput = dapatkanWargaSchema.safeParse({ username });
     if (!semakInput.success) {
@@ -88,7 +91,7 @@ export async function GET(request) {
       );
     }
 
-    const namaFail = `${username.toLowerCase()}/index.html`;
+    const namaFail = `${username.toLowerCase()}/${pathSpesifik.replace(/^\/+/, '')}`;
 
     const arahanAmbil = new GetObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
@@ -106,11 +109,12 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json({ 
       success: false, 
-      message: "Fail belum wujud dalam direktori." 
+      message: "Fail belum wujud atau kosong." 
     }, { status: 404 });
   }
 }
 
+// ➔ POST: Handler Simpan/Kemaskini Fail Dinamik ke Cloudflare R2
 export async function POST(request) {
   try {
     const dataBadan = await request.json();

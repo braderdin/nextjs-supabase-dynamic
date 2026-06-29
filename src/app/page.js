@@ -32,8 +32,6 @@ export default function Home() {
   const [lamanBerjaya, setLamanBerjaya] = useState("");
 
   const [failAktif, setFailAktif] = useState({ name: "index.html", path: "index.html" });
-
-  // ➔ SUNTIKAN STATE NYATA: Memegang status fail fizikal dari Cloudflare R2
   const [senaraiFailR2, setSenaraiFailR2] = useState([]);
   const [loadingFailR2, setLoadingFailR2] = useState(false);
 
@@ -41,7 +39,7 @@ export default function Home() {
   const [senaraiJiranIntim, setSenaraiJiranIntim] = useState([]);
   const [inputSlot, setInputSlot] = useState({}); 
 
-  // Penarik fail live dari R2
+  // 📡 1. Penarik indeks fail real-time dari storan Cloudflare R2
   async function muatSenaraiFailDaripadaR2(usernameAkaun) {
     setLoadingFailR2(true);
     try {
@@ -57,12 +55,13 @@ export default function Home() {
     }
   }
 
-  // Menukar fokus suntingan Notepad ke fail fizikal yang dipilih dari grid
+  // 📥 2. Membaca kod kandungan fail fizikal apabila fail di klik di grid UI
   async function handlePilihFailDariGrid(fail) {
     if (fail.jenis === 'folder') return;
     setFailAktif({ name: fail.nama, path: fail.laluanFull });
     setLoading(true);
     setStatusR2(`Membuka dekripsi data fail [${fail.laluanFull}]... 📥`);
+    setLamanBerjaya("");
     
     try {
       const res = await fetch(`/api/upload?username=${namaPengguna}&path=${fail.laluanFull}`);
@@ -72,15 +71,17 @@ export default function Home() {
         setStatusR2(`Fail [${fail.nama}] sedia disunting.`);
       } else {
         setKodHtml(``);
+        setStatusR2(`Ralat memuat fail.`);
       }
     } catch (err) {
       setKodHtml(``);
+      setStatusR2(`Gagal berhubung dengan fail.`);
     } finally {
       setLoading(false);
     }
   }
 
-  // Mengendalikan penciptaan item fizikal (Fail baru diisi placeholder, folder baru diisi .keep)
+  // 🛠️ 3. Penciptaan Item Fizikal (Fail kosong / Folder bertutup placeholder .keep)
   async function handleCiptaItemFizikal(namaItem, jenisItem, laluanFullItem) {
     try {
       if (jenisItem === 'fail') {
@@ -90,7 +91,6 @@ export default function Home() {
           body: JSON.stringify({ namaPengguna, kodHtml: ``, pathFailBaru: laluanFullItem }),
         });
       } else {
-        // R2 memerlukan fail fizikal untuk mengekalkan laluan folder kosong (.keep hack)
         await fetch("/api/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -99,11 +99,11 @@ export default function Home() {
       }
       await muatSenaraiFailDaripadaR2(namaPengguna);
     } catch (e) {
-      console.error(e);
+      console.error("Gagal mencipta item fizikal awan:", e);
     }
   }
 
-  // Mengendalikan pemadaman item dari storan R2 awan
+  // ❌ 4. Pemadaman Melata Objek (Cascading Folder/File Delete) dari Bucket
   async function handlePadamItemFizikal(laluanFullItem) {
     try {
       const res = await fetch("/api/files", {
@@ -114,7 +114,6 @@ export default function Home() {
       const data = await res.json();
       if (data.success) {
         await muatSenaraiFailDaripadaR2(namaPengguna);
-        // Jika fail aktif dipadam, alih balik fokus ke index.html
         if (failAktif.path.startsWith(laluanFullItem)) {
           setFailAktif({ name: "index.html", path: "index.html" });
           const resIndex = await fetch(`/api/upload?username=${namaPengguna}&path=index.html`);
@@ -123,7 +122,7 @@ export default function Home() {
         }
       }
     } catch (e) {
-      alert("Ralat memadam objek.");
+      alert("Ralat memadam objek dari Cloudflare R2.");
     }
   }
 
@@ -135,11 +134,9 @@ export default function Home() {
         .eq('penerima_username', usernameAkaun.toLowerCase())
         .eq('status', 'pending');
 
-      if (!error && data) {
-        setPermintaanJiran(data);
-      }
+      if (!error && data) setPermintaanJiran(data);
     } catch (err) {
-      console.error("Gagal memeriksa Peti Surat Jiran.");
+      console.error(err);
     }
   }
 
@@ -151,11 +148,9 @@ export default function Home() {
         .eq('user_id', userId)
         .order('slot_kedudukan', { ascending: true });
 
-      if (!error && data) {
-        setSenaraiJiranIntim(data);
-      }
+      if (!error && data) setSenaraiJiranIntim(data);
     } catch (err) {
-      console.error("Gagal mengambil data jiran intim.");
+      console.error(err);
     }
   }
 
@@ -169,12 +164,10 @@ export default function Home() {
       if (!error) {
         setPermintaanJiran(prev => prev.filter(item => item.id !== idRekod));
         if (statusBaru === 'accepted') {
-          alert("🤝 Alhamdulillah bang! Ikatan Rakan Tetangga berjaya termaktub!");
+          alert("🤝 Ikatan Rakan Tetangga siber berjaya termaktub!");
         } else {
-          alert("📭 Permohonan jiran telah ditolak dengan harmoni.");
+          alert("📭 Permohonan jiran ditolak dengan harmoni.");
         }
-      } else {
-        alert("❌ Ralat database: Gagal memproses permohonan.");
       }
     } catch (err) {
       console.error(err);
@@ -201,65 +194,40 @@ export default function Home() {
 
     const { error } = await supabase
       .from('jiran_intim')
-      .insert({
-        user_id: user.id,
-        jiran_username: targetUsername,
-        slot_kedudukan: nomborSlot
-      });
+      .insert({ user_id: user.id, jiran_username: targetUsername, slot_kedudukan: nomborSlot });
 
     if (!error) {
-      alert(`🎉 Mantap! @${targetUsername} berjaya dikunci pada Slot ${nomborSlot}.`);
+      alert(`🎉 @${targetUsername} berjaya dikunci pada Slot ${nomborSlot}.`);
       setInputSlot(prev => ({ ...prev, [nomborSlot]: "" }));
       await ambilJiranIntim(user.id);
     } else {
-      if (error.code === '23505') {
-        alert("❌ Ralat: Slot ini sudah diisi atau jiran tersebut sudah tersenarai di slot lain.");
-      } else {
-        alert(`❌ Ralat Sistem: ${error.message}`);
-      }
+      alert(error.code === '23505' ? "❌ Slot sudah diisi atau jiran sudah didaftarkan." : `❌ Ralat: ${error.message}`);
     }
   }
 
   async function handlePadamJiranIntim(idRekod) {
-    const sahPadam = window.confirm("⚠️ Anda pasti ingin mengosongkan slot jiran intim ini?");
-    if (!sahPadam) return;
-
-    const { error } = await supabase
-      .from('jiran_intim')
-      .delete()
-      .eq('id', idRekod);
-
-    if (!error) {
-      setSenaraiJiranIntim(prev => prev.filter(item => item.id !== idRekod));
-    } else {
-      alert("❌ Gagal mengosongkan slot.");
-    }
+    if (!window.confirm("⚠️ Kosongkan slot jiran intim ini?")) return;
+    const { error } = await supabase.from('jiran_intim').delete().eq('id', idRekod);
+    if (!error) await ambilJiranIntim(user.id);
   }
 
   async function semakProfilWarga(currentUser) {
     if (!currentUser) return;
-    const { data } = await supabase
-      .from('warga_profil')
-      .select('username')
-      .eq('id', currentUser.id)
-      .maybeSingle();
+    const { data } = await supabase.from('warga_profil').select('username').eq('id', currentUser.id).maybeSingle();
 
     if (data) {
       setNamaPengguna(data.username); 
       setHasProfil(true);
-      
       await ambilPermintaanJiran(data.username);
       await ambilJiranIntim(currentUser.id);
-      await muatSenaraiFailDaripadaR2(data.username); // ➔ AMBIL INDEKS FAIL REALTIME R2
+      await muatSenaraiFailDaripadaR2(data.username); 
       
       try {
-        const amarahRespon = await fetch(`/api/upload?username=${data.username}&path=index.html`);
-        const dataKod = await amarahRespon.json();
-        if (dataKod.success && dataKod.kodHtml) {
-          setKodHtml(dataKod.kodHtml);
-        }
+        const res = await fetch(`/api/upload?username=${data.username}&path=index.html`);
+        const dataKod = await res.json();
+        if (dataKod.success && dataKod.kodHtml) setKodHtml(dataKod.kodHtml);
       } catch (err) {
-        console.error("Gagal auto-load kod lama dari storan R2.");
+        console.error(err);
       }
     } else {
       setHasProfil(false);
@@ -270,18 +238,16 @@ export default function Home() {
     try {
       const respon = await fetch("/api/warga");
       const hasil = await respon.json();
-      if (hasil.success) {
-        setWargaLive(hasil.warga.slice(0, 5)); 
-      }
+      if (hasil.success) setWargaLive(hasil.warga.slice(0, 5)); 
     } catch (err) {
-      console.error("Gagal menarik senarai warga.");
+      console.error(err);
     }
   }
 
   useEffect(() => {
     async function ambilDataSupabase() {
-      const { data: projek_data } = await supabase.from('projek_data').select('*');
-      if (projek_data && projek_data[0]) setMesejDinamik(projek_data[0].mesej);
+      const { data } = await supabase.from('projek_data').select('*');
+      if (data && data[0]) setMesejDinamik(data[0].mesej);
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -300,7 +266,6 @@ export default function Home() {
 
     ambilDataSupabase();
     ambilWargaR2();
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -314,68 +279,46 @@ export default function Home() {
     setErrorProfil("");
 
     try {
-      const { error } = await supabase
-        .from('warga_profil')
-        .insert({ id: user.id, username: usernameInput });
-
+      const { error } = await supabase.from('warga_profil').insert({ id: user.id, username: usernameInput });
       if (error) {
-        if (error.code === '23505') {
-          setErrorProfil("Alamak! Nama teratak ini sudah diambil oleh warga lain. Sila pilih nama lain! 😢");
-        } else {
-          setErrorProfil(error.message);
-        }
+        setErrorProfil(error.code === '23505' ? "Nama teratak ini sudah diambil warga lain! 😢" : error.message);
       } else {
         setNamaPengguna(usernameInput);
         setHasProfil(true);
-        
-        // Cipta fail index.html fizikal pertama secara automatik di R2 untuk warga baru
         await fetch("/api/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ namaPengguna: usernameInput, kodHtml, pathFailBaru: "index.html" }),
         });
-
         await ambilWargaR2(); 
         await muatSenaraiFailDaripadaR2(usernameInput);
       }
     } catch (err) {
-      setErrorProfil("Ralat Sistem: Gagal menuntut nama.");
+      setErrorProfil("Ralat Sistem: Gagal menuntut nama teratak.");
     } finally {
       setLoadingProfil(false);
     }
   }
 
-  async function handleLoginGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}` },
-    });
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-  }
-
   async function handleSimpanKeR2(e) {
     e.preventDefault();
     setLoading(true);
-    setStatusR2(`Sedang mengemaskini fail [${failAktif.path}] ke Cloudflare R2... 🚀`);
+    setStatusR2(`Mengemaskini fail [${failAktif.path}] ke Cloudflare R2... 🚀`);
     setLamanBerjaya("");
 
     try {
-      const hantarData = await fetch("/api/upload", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ namaPengguna, kodHtml, pathFailBaru: failAktif.path }),
       });
-      const keputusan = await hantarData.json();
+      const keputusan = await res.json();
       if (keputusan.success) {
-        setStatusR2(`🎉 Berjaya! Fail [${failAktif.name}] selamat dikemaskini.`);
+        setStatusR2(`🎉 Berjaya! Fail [${failAktif.name}] selamat dikunci.`);
         setLamanBerjaya(namaPengguna.toLowerCase());
-        await ambilWargaR2(); 
-        await muatSenaraiFailDaripadaR2(namaPengguna); // Segarkan senarai grid
+        await muatSenaraiFailDaripadaR2(namaPengguna); 
       } else {
-        setStatusR2(`❌ Gagal: ${keputusan.error || keputusan.message}`);
+        setStatusR2(`❌ Gagal: ${keputusan.message}`);
       }
     } catch (error) {
       setStatusR2(`❌ Ralat Sistem: ${error.message}`);
@@ -396,10 +339,154 @@ export default function Home() {
           <Link href="/kitab" className="hover:text-white transition-colors">📜 KITAB_HTML</Link>
           <Link href="/kitab_grafik" className="hover:text-white transition-colors">🎨 KITAB_GRAFIK</Link>
         </div>
-        <ButangGoogleLogin user={user} handleLogin={handleLoginGoogle} handleLogout={handleLogout} />
+        <ButangGoogleLogin user={user} handleLogin={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })} handleLogout={() => supabase.auth.signOut()} />
       </header>
 
       <div className="max-w-5xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center gap-8">
         
+        {/* KEADAAN 1: BELUM LOG MASUK (LANDING PAGE RETRO VIBES) */}
         {!user && (
-          <div className="space-y-8
+          <div className="space-y-8 text-center font-mono">
+            <div className="p-8 bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#ec4899] max-w-2xl mx-auto">
+              <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-yellow-300 uppercase tracking-widest mb-2">
+                🏛️ KAMPUNG SIBER NUSANTARA
+              </h1>
+              <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                Ekosistem pembinaan teratak digital tanpa kekangan algoritma dan pengiklanan. Bina laman web HTML & CSS tulen anda secara bebas!
+              </p>
+              <div className="p-3 bg-slate-950 border border-slate-850 text-yellow-400 font-bold text-xs animate-pulse mb-6">
+                📡 {mesejDinamik}
+              </div>
+              <div className="flex justify-center">
+                <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })} className="bg-slate-950 border-2 border-pink-500 hover:bg-pink-500 hover:text-slate-950 text-pink-400 font-black px-6 py-3 tracking-widest uppercase transition-all shadow-[4px_4px_0px_0px_rgba(236,72,153,0.3)]">
+                  🔑 MASUK & PACAK TERATAK SEKARANG
+                </button>
+              </div>
+            </div>
+
+            {/* DIREKTORI RINGKAS */}
+            <div className="max-w-xl mx-auto p-4 bg-slate-900 border border-slate-800 text-left">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-2">🌐 Warga Yang Baru Bertukang Kod:</span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                {wargaLive.map((nama, i) => (
+                  <Link key={i} href={`/laman/${nama}`} className="p-2 bg-slate-950 border border-slate-850 text-pink-400 hover:border-pink-500 truncate block">
+                    @{nama}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* KEADAAN 2: DAH LOG MASUK TAPI BELUM TUNTUT ALAMAT/USERNAME */}
+        {user && !hasProfil && (
+          <TuntutNamaTeratak 
+            usernameInput={usernameInput} setUsernameInput={setUsernameInput}
+            handleCiptaProfil={handleCiptaProfil} loadingProfil={loadingProfil} errorProfil={errorProfil}
+          />
+        )}
+
+        {/* KEADAAN 3: KAWASAN STUDIO KREATIF DESKTOP (DAH ADA AKAUN & PROFIL) */}
+        {user && hasProfil && (
+          <div className="space-y-6 animate-fadeIn">
+            
+            <MenuNavigasiSiber />
+
+            {/* STRUKTUR GRID WORKSPACE UTAMA */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              
+              {/* PANEL KIRI: PENGURUS FAIL LALUAN FIZIKAL R2 */}
+              <div className="lg:col-span-1">
+                <PengurusFailGrid 
+                  senaraiFail={senaraiFailR2}
+                  loadingFail={loadingFailR2}
+                  onFileSelect={handlePilihFailDariGrid}
+                  onCiptaItem={handleCiptaItemFizikal}
+                  onPadamItem={handlePadamItemFizikal}
+                  namaPengguna={namaPengguna}
+                />
+              </div>
+
+              {/* PANEL KANAN: BUNDLE NOTEPAD EDITOR STUDIO KREATIF */}
+              <div className="lg:col-span-2">
+                <BorangStudioKreatif 
+                  namaPengguna={namaPengguna} kodHtml={kodHtml} setKodHtml={setKodHtml}
+                  handleSimpanKeR2={handleSimpanKeR2} loading={loading} statusR2={statusR2}
+                  lamanBerjaya={lamanBerjaya} failAktif={failAktif}
+                />
+              </div>
+
+            </div>
+
+            {/* ========================================================= */}
+            {/* 📬 PANEL SOSIAL: PETI SURAT & CARTA JIRAN INTIM TOP 8     */}
+            {/* ========================================================= */}
+            <div className="space-y-4 pt-4 border-t-2 border-dashed border-slate-900">
+              
+              {/* A. PENERIMAAN PERMINTAAN JIRAN */}
+              {permintaanJiran.length > 0 && (
+                <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#3b82f6] font-mono text-xs">
+                  <h3 className="text-blue-400 font-bold mb-3">📬 PERMOHONAN JIRAN MASUK ({permintaanJiran.length})</h3>
+                  <div className="space-y-2">
+                    {permintaanJiran.map(req => (
+                      <div key={req.id} className="flex items-center justify-between bg-slate-950 p-2 border border-slate-850">
+                        <span>🤝 Warga <b>@{req.warga_profil?.username}</b> ingin memohon untuk menjadi jiran teratak abang.</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleUrusJiran(req.id, 'accepted')} className="bg-emerald-950 text-emerald-400 border border-emerald-700 px-3 py-1 hover:bg-emerald-600 hover:text-black font-bold uppercase text-[10px]">Terima</button>
+                          <button onClick={() => handleUrusJiran(req.id, 'rejected')} className="bg-red-950 text-red-400 border border-red-900 px-3 py-1 hover:bg-red-600 hover:text-white uppercase text-[10px]">Tolak</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* B. PENGURUSAN SLOT CARTA JIRAN INTIM (TOP 8) */}
+              <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#ec4899] font-mono text-xs">
+                <h3 className="text-pink-400 font-bold mb-1">💖 PENGURUSAN CARTA JIRAN INTIM (TOP 8)</h3>
+                <p className="text-[10px] text-slate-500 mb-4">Susun dan kunci rakan tetangga abang ke dalam grid paparan 8 slot utama teratak.</p>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {Array.from({ length: 8 }, (_, i) => {
+                    const slotNum = i + 1;
+                    const jiranKunci = senaraiJiranIntim.find(j => Number(j.slot_kedudukan) === slotNum);
+                    
+                    return (
+                      <div key={slotNum} className="bg-slate-950 border border-slate-850 p-2 flex flex-col justify-between gap-2">
+                        <span className="text-[9px] text-slate-600 font-bold">SLOT 0{slotNum}</span>
+                        {jiranKunci ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-pink-400 font-bold truncate">@{jiranKunci.jiran_username}</span>
+                            <button onClick={() => handlePadamJiranIntim(jiranKunci.id)} className="w-full bg-slate-900 border border-red-900/40 text-red-400 py-1 text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all">Kosongkan</button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <input 
+                              type="text" 
+                              placeholder="nama jiran" 
+                              value={inputSlot[slotNum] || ""} 
+                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
+                              className="bg-slate-900 border border-slate-850 px-1 py-0.5 text-[10px] text-white focus:outline-none focus:border-pink-500"
+                            />
+                            <button onClick={() => handleKunciJiranIntim(slotNum)} className="w-full bg-slate-900 border border-slate-750 text-slate-400 py-1 text-[9px] uppercase hover:border-pink-500 hover:text-pink-400 font-bold">Kunci</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
+
+      <footer className="py-4 text-center text-[10px] font-mono text-slate-600 border-t border-slate-900 mt-12">
+        Kampung Siber Komuniti • Dipersembahkan oleh braderdin dengan penuh minat
+      </footer>
+    </div>
+  );
+}
