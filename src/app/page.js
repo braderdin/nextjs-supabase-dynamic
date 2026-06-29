@@ -138,10 +138,10 @@ export default function Home() {
     }
   }
 
-  // ➔ TAMBAHAN FUNGSI: Padam Jiran dari Slot
+  // ➔ PEMBAIKAN TYPO: Padam Jiran dari Slot (Jarak 'sah Padam' dibuang)
   async function handlePadamJiranIntim(idRekod) {
-    const sah Padam = window.confirm("⚠️ Anda pasti ingin mengosongkan slot jiran intim ini?");
-    if (!sah Padam) return;
+    const sahPadam = window.confirm("⚠️ Anda pasti ingin mengosongkan slot jiran intim ini?");
+    if (!sahPadam) return;
 
     const { error } = await supabase
       .from('jiran_intim')
@@ -427,7 +427,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* ➔ TAMBAHAN UI: PANEL PENGURUS JIRAN INTIM TOP 8 (RETRO STYLE) */}
+            {/* PANEL PENGURUS JIRAN INTIM TOP 8 (RETRO STYLE) */}
             <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308]">
               <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-[11px] text-slate-300 select-none">
                 <span className="flex items-center gap-1.5">⚙️ pengurus_jiran_intim.exe (Top 8 Management)</span>
@@ -463,7 +463,7 @@ export default function Home() {
                               type="text"
                               placeholder="Nama teratak..."
                               value={inputSlot[slotNum] || ""}
-                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
+                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: i === slotNum ? prev[slotNum] : e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
                               className="flex-1 bg-slate-900 border border-slate-850 px-2 py-1 text-[11px] text-yellow-400 placeholder-slate-700 focus:outline-none"
                             />
                             <button
