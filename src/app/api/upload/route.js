@@ -25,7 +25,8 @@ const PEMETAAN_MIME = {
   'svg': 'image/svg+xml',
   'ttf': 'font/ttf',
   'woff': 'font/woff',
-  'woff2': 'font/woff2'
+  'woff2': 'font/woff2',
+  'keep': 'text/plain' // ➔ PEMBAIKAN: Ditambah untuk membenarkan folder placeholder kosong
 };
 
 const dapatkanWargaSchema = z.object({
@@ -40,7 +41,7 @@ const muatNaikTeratakSchema = z.object({
     .regex(/^[a-zA-Z0-9]+$/, { message: "Nama teratak hanya boleh mengandungi huruf dan nombor sahaja! ⚠️" }),
   
   kodHtml: z.string({ required_error: "Kandungan fail diperlukan abangku! ⚠️" })
-    .min(1, { message: "Kandungan fail tidak boleh kosong abangku! ⚠️" })
+    .min(0, { message: "Kandungan fail tidak boleh kosong abangku! ⚠️" }) // ➔ PEMBAIKAN: Ditukar ke 0 supaya fail baharu yang kosong boleh dicipta
     .refine((val) => Buffer.byteLength(val, 'utf8') <= 51200, {
       message: "⚠️ Fail ditolak! Saiz fail anda terlalu besar (Maksimum 50KB sahaja)."
     }),
@@ -75,12 +76,10 @@ async function tukarStreamKeTeks(stream) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-// ➔ GET: Versi Dinamik Berasaskan Parameter Path dari UI Grid
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username");
-    // ➔ SUNTIKAN DINAMIK: Terima parameter path fail spesifik dari UI grid
     const pathSpesifik = searchParams.get("path") || "index.html";
 
     const semakInput = dapatkanWargaSchema.safeParse({ username });
@@ -114,7 +113,6 @@ export async function GET(request) {
   }
 }
 
-// ➔ POST: Handler Simpan/Kemaskini Fail Dinamik ke Cloudflare R2
 export async function POST(request) {
   try {
     const dataBadan = await request.json();

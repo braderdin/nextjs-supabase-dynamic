@@ -36,7 +36,6 @@ export default function PengurusFailGrid({
 
     const laluanFull = folderSemasa ? `${folderSemasa}/${namaBersih}` : namaBersih;
 
-    // Semak pertindihan nama objek
     if (senaraiFail.some(f => f.laluanFull.toLowerCase() === laluanFull.toLowerCase())) {
       alert("❌ Alamak bang! Fail atau folder dengan nama ini sudah wujud.");
       return;
@@ -44,13 +43,13 @@ export default function PengurusFailGrid({
 
     if (modCipta === 'fail') {
       if (!sahkanKeselamatanFail(namaBersih)) {
-        alert(`❌ Akses Ditolak! Sila gunakan ekstensi yang dibenarkan sahaja.\n\nEkstensi: ${EKSTENSI_DIBENARKAN.join(', ')}`);
+        alert(`❌ Akses Ditolak! Sila gunakan ekstensi statik web yang sah sahaja.\n\nEkstensi dibenarkan: ${EKSTENSI_DIBENARKAN.join(', ')}`);
         return;
       }
       if (onCiptaItem) onCiptaItem(namaBersih, 'fail', laluanFull);
     } else if (modCipta === 'folder') {
       if (namaBersih.includes('.')) {
-        alert("⚠️ Folder tidak boleh mengandungi simbol titik (.) abangku!");
+        alert("⚠️ Folder tak boleh ada tanda titik (.) abangku!");
         return;
       }
       if (onCiptaItem) onCiptaItem(namaBersih, 'folder', laluanFull);
@@ -61,7 +60,7 @@ export default function PengurusFailGrid({
   }
 
   function handlePadamEntiti(laluanTarget) {
-    const sahkan = window.confirm(`⚠️ Pasti abang? Tindakan ini akan memadamkan secara kekal dari Cloudflare R2: ${laluanTarget}`);
+    const sahkan = window.confirm(`⚠️ Anda pasti? Tindakan ini akan memadamkan secara kekal dari Cloudflare R2: ${laluanTarget}`);
     if (!sahkan) return;
     if (onPadamItem) onPadamItem(laluanTarget);
   }
@@ -72,7 +71,6 @@ export default function PengurusFailGrid({
     setFolderSemasa(pecahan.join('/'));
   }
 
-  // Logik menapis paparan visual mengikut lapisan folder semasa pelawat
   const itemDipapar = senaraiFail.filter(item => {
     if (!folderSemasa) {
       return !item.laluanFull.includes('/');
@@ -87,12 +85,13 @@ export default function PengurusFailGrid({
     <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#eab308] font-mono text-xs text-white">
       <div className="bg-slate-800 p-2 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 select-none">
         <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-xs truncate">
-          📂 teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
+          📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
         </div>
         
         <div className="flex gap-2">
           {folderSemasa && (
             <button 
+              type="button"
               onClick={handlePatahBalik}
               className="bg-slate-950 border border-slate-700 hover:border-pink-500 text-pink-400 px-2.5 py-1 font-bold text-[11px] uppercase transition-colors"
             >
@@ -100,12 +99,14 @@ export default function PengurusFailGrid({
             </button>
           )}
           <button 
+            type="button"
             onClick={() => setModCipta(modCipta === 'fail' ? null : 'fail')}
             className="bg-slate-950 border border-emerald-500 hover:bg-emerald-600 hover:text-slate-950 text-emerald-400 px-3 py-1 font-bold text-[11px] uppercase transition-all"
           >
             📄 + Fail
           </button>
           <button 
+            type="button"
             onClick={() => setModCipta(modCipta === 'folder' ? null : 'folder')}
             className="bg-slate-950 border border-blue-500 hover:bg-blue-600 hover:text-slate-950 text-blue-400 px-3 py-1 font-bold text-[11px] uppercase transition-all"
           >
@@ -114,7 +115,6 @@ export default function PengurusFailGrid({
         </div>
       </div>
 
-      {/* BORANG MINI CIPTA FAIL/FOLDER */}
       {modCipta && (
         <form onSubmit={handleCiptaEntiti} className="p-3 bg-slate-950 border-b border-slate-850 flex items-center gap-2 animate-fadeIn">
           <span className="text-yellow-500 font-bold">Nama {modCipta === 'fail' ? 'Fail' : 'Folder'}:</span>
@@ -122,7 +122,7 @@ export default function PengurusFailGrid({
             type="text"
             autoFocus
             required
-            placeholder={modCipta === 'fail' ? "cth: portfolio.html, tema.css" : "cth: imej, arkib"}
+            placeholder={modCipta === 'fail' ? "cth: portfolio.html, gaya.css" : "cth: imej, arkib"}
             value={inputNamaBaru}
             onChange={(e) => setInputNamaBaru(e.target.value)}
             className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-mono"
@@ -132,12 +132,11 @@ export default function PengurusFailGrid({
         </form>
       )}
 
-      {/* GRID CONTAINER ITEM */}
       <div className="p-4 md:p-6 bg-slate-950 min-h-[220px] grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
         
         {loadingFail && (
-          <div className="col-span-full text-center text-slate-500 py-12 animate-pulse select-none">
-            🔄 Sedang menyegarkan struktur fail dari awan R2...
+          <div className="col-span-full text-center text-slate-500 font-mono py-12 animate-pulse">
+            🔄 Sedang memancarkan isyarat satelit R2...
           </div>
         )}
 
@@ -152,14 +151,14 @@ export default function PengurusFailGrid({
           return (
             <div 
               key={indeks}
-              className="bg-slate-900 border-2 border-slate-850 hover:border-yellow-500 p-3 flex flex-col items-center justify-between text-center relative group transition-all select-none shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]"
+              className="bg-slate-900 border-2 border-slate-850 hover:border-yellow-500 p-3 flex flex-col items-center justify-between text-center relative group transition-all select-none shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)]"
             >
-              {/* Butang Padam Awan */}
               <button 
+                type="button"
                 onClick={() => handlePadamEntiti(item.laluanFull)}
                 className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-950 border border-red-700 text-red-400 hover:bg-red-600 hover:text-white text-[9px] px-1 rounded transition-opacity"
               >
-                PADAM
+                DEL
               </button>
 
               <div 
