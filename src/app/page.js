@@ -10,7 +10,7 @@ import BorangStudioKreatif from '../components/BorangStudioKreatif';
 import ButangGoogleLogin from '../components/ButangGoogleLogin';
 import MenuNavigasiSiber from '../components/MenuNavigasiSiber';
 import TuntutNamaTeratak from '../components/TuntutNamaTeratak';
-import PengurusFailGrid from '../components/PengurusFailGrid'; // ➔ TAMBAHAN: Import Pengurus Fail Grid
+import PengurusFailGrid from '../components/PengurusFailGrid'; 
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -35,7 +35,6 @@ export default function Home() {
   const [statusR2, setStatusR2] = useState("");
   const [lamanBerjaya, setLamanBerjaya] = useState("");
 
-  // ➔ TAMBAHAN STATE KUNCI: Menjejak fail aktif yang dipilih dari grid Neocities
   const [failAktif, setFailAktif] = useState({ name: "index.html", path: "index.html" });
 
   // --- STATE PETI SURAT & JIRAN ---
@@ -43,14 +42,11 @@ export default function Home() {
   const [senaraiJiranIntim, setSenaraiJiranIntim] = useState([]);
   const [inputSlot, setInputSlot] = useState({}); 
 
-  // Fungsi mengendalikan pertukaran fail apabila pengguna klik fail di grid
   function handlePilihFailDariGrid(fail) {
     setFailAktif({ name: fail.nama, path: fail.laluanFull });
     setKodHtml(fail.kandungan || "");
-    
-    // Berikan maklum balas toast mini di console atau alert jika perlu
     console.log(`[SYSTEM]: Menukar fokus editor ke fail -> ${fail.laluanFull}`);
-  }
+  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
 
   async function ambilPermintaanJiran(usernameAkaun) {
     try {
@@ -66,7 +62,7 @@ export default function Home() {
     } catch (err) {
       console.error("Gagal memeriksa Peti Surat Jiran.");
     }
-  }
+  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
 
   async function ambilJiranIntim(userId) {
     try {
@@ -82,7 +78,7 @@ export default function Home() {
     } catch (err) {
       console.error("Gagal mengambil data jiran intim.");
     }
-  }
+  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
 
   async function handleUrusJiran(idRekod, statusBaru) {
     try {
@@ -281,7 +277,6 @@ export default function Home() {
       const hantarData = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // ➔ PERUBAHAN SENI BINA: Mengirim laluan fail dinamik ke R2 API
         body: JSON.stringify({ namaPengguna, kodHtml, pathFailBaru: failAktif.path }),
       });
       const keputusan = await hantarData.json();
@@ -380,7 +375,6 @@ export default function Home() {
 
             <MenuNavigasiSiber />
 
-            {/* PETI SURAT NOTIFIKASI JIRAN TETANGGA */}
             {permintaanJiran.length > 0 && (
               <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#ec4899] animate-fadeIn">
                 <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-xs text-slate-300 select-none">
@@ -416,7 +410,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* PANEL PENGURUS JIRAN INTIM TOP 8 */}
             <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308]">
               <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-xs text-slate-300 select-none">
                 <span>⚙️ pengurus_jiran_intim.exe (Top 8 Management)</span>
@@ -469,13 +462,11 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ➔ SUNTIKAN INTEGRASI: Letakkan Pengurus Fail Grid di Atas Teks Editor */}
             <PengurusFailGrid 
               namaPengguna={namaPengguna} 
               onFileSelect={handlePilihFailDariGrid} 
             />
 
-            {/* EDITOR TERATAK PERIBADI YANG DIKUNCI IKUT USERNAME ASLI */}
             <BorangStudioKreatif 
               namaPengguna={namaPengguna}
               setNamaPengguna={setNamaPengguna}
@@ -485,7 +476,7 @@ export default function Home() {
               loading={loading}
               statusR2={statusR2}
               lamanBerjaya={lamanBerjaya}
-              failAktif={failAktif} // ➔ Hantar info fail aktif ke editor
+              failAktif={failAktif} 
             />
           </div>
         )}

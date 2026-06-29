@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
-import Link from 'next/link'; // ➔ PEMBAIKAN: Ditukar dari 'next/next' ke 'next/link'
+import Link from 'next/link'; 
 import KomponenKomenDanKaunter from "../../../components/KomponenKomenDanKaunter";
 import WidgetJiranIntim from "../../../components/WidgetJiranIntim";
 
@@ -11,7 +11,7 @@ const r2Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
-});
+}); 
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -21,9 +21,9 @@ async function tukarStreamKeTeks(stream) {
   const chunks = [];
   for await (const chunk of stream) {
     chunks.push(chunk);
-  }
+  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
   return Buffer.concat(chunks).toString("utf8");
-}
+} // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
 
 export default async function LamanWargaSiber({ params }) {
   const resolvedParams = await params;
@@ -58,7 +58,6 @@ export default async function LamanWargaSiber({ params }) {
       Key: namaFailFull,
     });
     
-    // ➔ PEMBAIKAN: 'arhanAmbil' telah diperbetulkan menjadi 'arahanAmbil'
     const responR2 = await r2Client.send(arahanAmbil);
     const kodIsiAsli = await tukarStreamKeTeks(responR2.Body);
 

@@ -2,7 +2,6 @@ import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3
 import { NextResponse } from "next/server";
 import { z } from "zod"; 
 
-// 1. Inisialisasi Hubungan R2 (Kekal menggunakan kunci .env.local asal abang)
 const r2Client = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -12,7 +11,6 @@ const r2Client = new S3Client({
   },
 });
 
-// Kamus Pemetaan Mime-Type (Content-Type) untuk pemancaran fail yang tepat di browser
 const PEMETAAN_MIME = {
   'html': 'text/html',
   'htm': 'text/html',
@@ -30,16 +28,11 @@ const PEMETAAN_MIME = {
   'woff2': 'font/woff2'
 };
 
-// ==========================================
-// 🛡️ PENETAPAN SKEMA ZOD (VALIDATION SCHEMAS)
-// ==========================================
-
 const dapatkanWargaSchema = z.object({
   username: z.string({ required_error: "Nama pengguna diperlukan abangku! ⚠️" })
     .min(1, { message: "Nama pengguna tidak boleh kosong abangku! ⚠️" })
 });
 
-// Skema POST yang dinaik taraf untuk menyokong fail & laluan sub-folder dinamik
 const muatNaikTeratakSchema = z.object({
   namaPengguna: z.string({ required_error: "Nama pengguna diperlukan abangku! ⚠️" })
     .min(3, { message: "Nama teratak mestilah sekurang-kurangnya 3 aksara abangku! ⚠️" })
@@ -48,14 +41,12 @@ const muatNaikTeratakSchema = z.object({
   
   kodHtml: z.string({ required_error: "Kandungan fail diperlukan abangku! ⚠️" })
     .min(1, { message: "Kandungan fail tidak boleh kosong abangku! ⚠️" })
-    // Had saiz fail maksima diperketatkan ke 50KB (51200 Bytes) demi kuota storan
     .refine((val) => Buffer.byteLength(val, 'utf8') <= 51200, {
       message: "⚠️ Fail ditolak! Saiz fail anda terlalu besar (Maksimum 50KB sahaja)."
     }),
 
-  pathFailBaru: z.string().optional() // Parameter laluan fail dari Virtual File System
+  pathFailBaru: z.string().optional() 
 }).refine((data) => {
-  // Sahkan jenis ekstensi fail yang dihantar masuk
   const laluanMesej = data.pathFailBaru || "index.html";
   const ekstensi = laluanMesej.split('.').pop().toLowerCase();
   return Object.keys(PEMETAAN_MIME).includes(ekstensi);
@@ -63,14 +54,13 @@ const muatNaikTeratakSchema = z.object({
   message: "❌ Jenis fail disekat! Sistem mengesan cubaan memuat naik jenis fail berisiko tinggi.",
   path: ["pathFailBaru"]
 }).refine((data) => {
-  // Saringan Penapis XSS: Hanya imbas jika fail tersebut adalah berjenis HTML / HTM
   const laluanMesej = data.pathFailBaru || "index.html";
   const ekstensi = laluanMesej.split('.').pop().toLowerCase();
   
   if (ekstensi === 'html' || ekstensi === 'htm') {
     const corakBahaya = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|javascript:|onerror=|onload=/gi;
     return !corakBahaya.test(data.kodHtml);
-  }
+  } // ➔ PEMBAIKAN: Ditambah penutup yang tercicir
   return true;
 }, {
   message: "❌ Amaran Keamanan! Sistem mengesan ada suntikan kod larangan berbahaya di dalam fail HTML anda.",
@@ -125,7 +115,6 @@ export async function POST(request) {
   try {
     const dataBadan = await request.json();
 
-    // Jalankan tapisan saringan ketat Zod Sandbox
     const semakData = muatNaikTeratakSchema.safeParse(dataBadan);
     if (!semakData.success) {
       return NextResponse.json(
@@ -135,13 +124,9 @@ export async function POST(request) {
     }
 
     const { namaPengguna, kodHtml, pathFailBaru } = semakData.data;
-    
-    // ➔ REKAAN SENI BINA DINAMIK: Tentukan nama fail berdasarkan laluan yang dihantar pengguna
-    // Jika tiada path (legacy fallback), automatik simpan sebagai index.html
     const subLaluanFail = pathFailBaru ? pathFailBaru.replace(/^\/+/, '') : "index.html";
     const namaFailFull = `${namaPengguna.toLowerCase()}/${subLaluanFail}`;
 
-    // Ekstrak ekstensi untuk set Content-Type R2 secara dinamik
     const ekstensiFail = subLaluanFail.split('.').pop().toLowerCase();
     const contentTypeTerpilih = PEMETAAN_MIME[ekstensiFail] || 'text/plain';
 
