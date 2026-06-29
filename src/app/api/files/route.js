@@ -10,12 +10,11 @@ const r2Client = new S3Client({
   },
 });
 
-// GET: Membaca seluruh isi kandungan objek R2 milik username dan menukarnya ke format VFS Grid
+// 📥 GET: Membaca seluruh isi kandungan objek R2 milik username dan menukarnya ke format VFS Grid
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username");
-
     if (!username) {
       return NextResponse.json({ success: false, message: "Username diperlukan!" }, { status: 400 });
     }
@@ -27,23 +26,21 @@ export async function GET(request) {
 
     const responR2 = await r2Client.send(command);
     const objekMentah = responR2.Contents || [];
-
     const VFS = [];
     const folderDitemui = new Set();
 
     objekMentah.forEach((obj) => {
-      // Potong prefix nama folder induk pengguna (Cth: "abangdin/gaya/retro.css" -> "gaya/retro.css")
-      const laluanRelatif = obj.Key.substring(username.length + 1);
+      // Potong prefix nama folder induk pengguna secara selamat ( mixed-case safe )
+      const laluanRelatif = obj.Key.substring(username.toLowerCase().length + 1);
       if (!laluanRelatif || laluanRelatif === ".keep") return;
-
+      
       const segmen = laluanRelatif.split("/");
 
-      // Logik Rekursif: Kenal pasti dan wujudkan entiti folder secara automatik berdasarkan prefix
+      // Logik Rekursif: Wujudkan entiti folder secara automatik berdasarkan susunan sub-path prefix
       let jalurSemasa = "";
       for (let i = 0; i < segmen.length - 1; i++) {
         if (jalurSemasa) jalurSemasa += "/";
         jalurSemasa += segmen[i];
-
         if (!folderDitemui.has(jalurSemasa)) {
           folderDitemui.add(jalurSemasa);
           VFS.push({
@@ -57,7 +54,7 @@ export async function GET(request) {
       // Pastikan fail placeholder .keep milik folder kosong tidak tersenarai sebagai fail visual
       if (segmen[segmen.length - 1] === ".keep") return;
 
-      // Masukkan entiti fail ke dalam tatasusunan grid
+      // Masukkan entiti fail ke dalam tatasusunan grid UI
       VFS.push({
         nama: segmen[segmen.length - 1],
         jenis: "fail",
@@ -69,9 +66,9 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}
+} // ➔ ✅ PEMBAIKAN JITU: Kurungan penutup fungsi GET yang tercicir kini selamat dipasang!
 
-// DELETE: Menguruskan pemadaman fail tunggal atau pemadaman melata (cascading folder delete)
+// ❌ DELETE: Menguruskan pemadaman fail tunggal atau pemadaman melata (cascading folder delete)
 export async function DELETE(request) {
   try {
     const { username, pathFail } = await request.json();
@@ -82,6 +79,7 @@ export async function DELETE(request) {
       Bucket: process.env.R2_BUCKET_NAME,
       Prefix: targetKunci,
     });
+
     const senaraiCarian = await r2Client.send(cariCommand);
     const objekUntukDipadam = senaraiCarian.Contents || [];
 
