@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
-import Link from 'next/next';
+import Link from 'next/link'; // ➔ PEMBAIKAN: Ditukar dari 'next/next' ke 'next/link'
 import KomponenKomenDanKaunter from "../../../components/KomponenKomenDanKaunter";
 import WidgetJiranIntim from "../../../components/WidgetJiranIntim";
 
@@ -26,19 +26,15 @@ async function tukarStreamKeTeks(stream) {
 }
 
 export default async function LamanWargaSiber({ params }) {
-  // Ambil parameter URL secara asinkronus mengikut standard Next.js 15
   const resolvedParams = await params;
   const namaPengguna = resolvedParams.namaPengguna;
   const jaluan = resolvedParams.jaluan;
 
-  // ➔ ENJIN PENYELESAIAN LALUAN: Gabungkan array segmen URL menjadi string path R2
-  // Jika pelawat buka /laman/abangdin -> jaluan bernilai undefined -> kita hantar index.html
   const subPathFail = jaluan && jaluan.length > 0 ? jaluan.join('/') : 'index.html';
   const namaFailFull = `${namaPengguna.toLowerCase()}/${subPathFail}`;
 
   let senaraiJiranIntim = [];
   try {
-    // Tarik profil tuan tanah & senarai Top 8 Jiran Intim (Kekal selamat)
     const { data: profil } = await supabase
       .from('warga_profil')
       .select('id')
@@ -57,21 +53,19 @@ export default async function LamanWargaSiber({ params }) {
       }
     }
 
-    // Ambil fail spesifik (HTML/CSS/JS/TXT) dari baldi Cloudflare R2 secara dinamik
     const arahanAmbil = new GetObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: namaFailFull,
     });
     
-    const responR2 = await r2Client.send(arhanAmbil);
+    // ➔ PEMBAIKAN: 'arhanAmbil' telah diperbetulkan menjadi 'arahanAmbil'
+    const responR2 = await r2Client.send(arahanAmbil);
     const kodIsiAsli = await tukarStreamKeTeks(responR2.Body);
 
-    // ➔ STRATEGI PENYAMPAIAN: Hanya suntik Buku Pelawat jika fail yang dibuka adalah index.html
     const adakahLamanUtama = subPathFail === 'index.html';
 
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
-        {/* Pancarkan kod sumber asli fail dari R2 */}
         <div dangerouslySetInnerHTML={{ __html: kodIsiAsli }} />
         
         {adakahLamanUtama && (
@@ -85,7 +79,6 @@ export default async function LamanWargaSiber({ params }) {
       </div>
     );
   } catch (error) {
-    // Paparan ralat retro jika fail spesifik tidak wujud di R2
     return (
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
         <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
