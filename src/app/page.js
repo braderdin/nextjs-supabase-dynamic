@@ -34,6 +34,51 @@ export default function Home() {
   const [statusR2, setStatusR2] = useState("");
   const [lamanBerjaya, setLamanBerjaya] = useState("");
 
+  // ➔ TAMBAHAN STATE: Peti Surat Ikatan Jiran
+  const [permintaanJiran, setPermintaanJiran] = useState([]);
+
+  // ➔ TAMBAHAN FUNGSI: Ambil permohonan jiran berstatus pending untuk akaun ini
+  async function ambilPermintaanJiran(usernameAkaun) {
+    try {
+      const { data, error } = await supabase
+        .from('ikatan_jiran')
+        .select('id, status, pengirim_id, warga_profil(username)')
+        .eq('penerima_username', usernameAkaun.toLowerCase())
+        .eq('status', 'pending');
+
+      if (!error && data) {
+        setPermintaanJiran(data);
+      }
+    } catch (err) {
+      console.error("Gagal memeriksa Peti Surat Jiran.");
+    }
+  }
+
+  // ➔ TAMBAHAN FUNGSI: Logik Terima atau Tolak Permintaan Jiran
+  async function handleUrusJiran(idRekod, statusBaru) {
+    try {
+      const { error } = await supabase
+        .from('ikatan_jiran')
+        .update({ status: statusBaru })
+        .eq('id', idRekod);
+
+      if (!error) {
+        // Buang rekod dari paparan peti surat serta-merta selepas diuruskan
+        setPermintaanJiran(prev => prev.filter(item => item.id !== idRekod));
+        
+        if (statusBaru === 'accepted') {
+          alert("🤝 Alhamdulillah bang! Ikatan Rakan Tetangga berjaya termaktub!");
+        } else {
+          alert("📭 Permohonan jiran telah ditolak dengan harmoni.");
+        }
+      } else {
+        alert("❌ Ralat database: Gagal memproses permohonan.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   // Fungsi menyemak status profil sekaligus menarik kod lama dari R2 jika wujud
   async function semakProfilWarga(currentUser) {
     if (!currentUser) return;
@@ -46,6 +91,9 @@ export default function Home() {
     if (data) {
       setNamaPengguna(data.username); // Otomatik mengunci nama folder mengikut username unik mereka
       setHasProfil(true);
+      
+      // ➔ TAMBAHAN: Panggil fungsi semak peti surat sebaik sahaja profil disahkan
+      await ambilPermintaanJiran(data.username);
       
       // ➔ SUNTIKAN MAGIS: Tarik kod sedia ada dari R2 supaya boleh terus di-edit semula!
       try {
@@ -90,6 +138,7 @@ export default function Home() {
       } else {
         setHasProfil(false);
         setNamaPengguna("");
+        setPermintaanJiran([]);
         setKodHtml("<h1>Selamat Datang Ke Teratak Saya!</h1>\n<p>Laman web ini dibina menggunakan HTML & CSS comel.</p>");
       }
     });
@@ -183,7 +232,7 @@ export default function Home() {
           <span className="hidden sm:inline">|</span>
           <Link href="/jelajah" className="hover:text-white transition-colors">🌐 DIREKTORI</Link>
           <Link href="/kitab" className="hover:text-white transition-colors">📜 KITAB_HTML</Link>
-          <Link href="/kitab_grafik" className="hover:text-white transition-colors">🎨 KITAB_GRAFIK</Link> {/* ➔ Suntikan Baru Selesai Disatukan */}
+          <Link href="/kitab_grafik" className="hover:text-white transition-colors">🎨 KITAB_GRAFIK</Link>
         </div>
 
         <ButangGoogleLogin user={user} handleLogin={handleLoginGoogle} handleLogout={handleLogout} />
@@ -265,6 +314,43 @@ export default function Home() {
             </div>
 
             <MenuNavigasiSiber />
+
+            {/* ➔ TAMBAHAN UI: PETI SURAT NOTIFIKASI JIRAN TETANGGA (RETRO BOX) */}
+            {permintaanJiran.length > 0 && (
+              <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#ec4899] animate-fadeIn">
+                <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-[11px] text-slate-300 select-none">
+                  <span className="flex items-center gap-1.5">📬 peti_surat_jiran.exe ({permintaanJiran.length})</span>
+                  <span className="text-[9px] text-pink-400 font-bold animate-pulse">PERMOHONAN BARU</span>
+                </div>
+                <div className="p-4 font-mono text-xs space-y-3">
+                  <p className="text-[11px] text-slate-400">[LOG SISTEM]: Warga berikut ingin menjalinkan ikatan kejiranan dengan teratak abang:</p>
+                  <div className="space-y-2">
+                    {permintaanJiran.map((jiran) => (
+                      <div key={jiran.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-950 border border-slate-850 gap-2">
+                        <div>
+                          <span className="text-yellow-400 font-bold">@{jiran.warga_profil?.username || "warga_siber"}</span>
+                          <span className="text-slate-500 text-[10px] block sm:inline sm:ml-2">Mengirim salam mohon berjiran tetangga.</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleUrusJiran(jiran.id, 'accepted')}
+                            className="bg-slate-900 hover:bg-emerald-600 border border-emerald-500 text-emerald-400 hover:text-slate-950 font-bold text-[10px] uppercase px-3 py-1 transition-all"
+                          >
+                            🤝 Terima
+                          </button>
+                          <button 
+                            onClick={() => handleUrusJiran(jiran.id, 'rejected')}
+                            className="bg-slate-900 hover:bg-red-600 border border-red-500 text-red-400 hover:text-white font-bold text-[10px] uppercase px-3 py-1 transition-all"
+                          >
+                            ❌ Tolak
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* EDITOR TERATAK PERIBADI YANG DIKUNCI IKUT USERNAME ASLI */}
             <BorangStudioKreatif 
