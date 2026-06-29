@@ -9,12 +9,12 @@ export default function BorangStudioKreatif({
   handleSimpanKeR2,
   loading,
   statusR2,
-  lamanBerjaya
+  lamanBerjaya,
+  failAktif // ➔ TAMBAHAN: Terima prop fail aktif dari parent
 }) {
   const [inputLagu, setInputLagu] = useState("");
   const [notifikasiLagu, setNotifikasiLagu] = useState("");
 
-  // ➔ SUNTIKAN BARU: Fungsi mengisi template asas retro secara automatik
   function handleMuatTemplateAsas(e) {
     e.preventDefault();
     const confirmMuat = window.confirm("⚠️ Amaran abangku! Memuatkan template akan memadamkan semua kod sedia ada dalam editor. Anda pasti?");
@@ -73,7 +73,10 @@ export default function BorangStudioKreatif({
   return (
     <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#10b981]">
       <div className="bg-slate-800 px-4 py-2 flex items-center justify-between border-b-2 border-slate-800 font-mono text-xs text-slate-200 select-none">
-        <span className="flex items-center gap-2">📂 studio_kreatif_notepad.sys</span>
+        {/* ➔ PERUBAHAN VISUAL: Memaparkan fail apa yang sedang diedit secara dinamik */}
+        <span className="flex items-center gap-2 text-emerald-400 font-bold">
+          📝 studio_kreatif_notepad.sys {failAktif ? `(Menyunting: ${failAktif.path})` : ""}
+        </span>
         <div className="flex gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
           <span className="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
@@ -83,10 +86,8 @@ export default function BorangStudioKreatif({
       <div className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
           <p className="text-xs text-slate-400 font-mono">
-            [SILA TAIP KOD DI SINI]: Cipta nama folder dan masukkan struktur HTML/CSS abang di bawah.
+            [EDITOR]: Kandungan kod di bawah adalah milik fail <span className="text-yellow-400 font-bold">{failAktif?.name || "index.html"}</span>.
           </p>
-          
-          {/* ➔ BUTANG SUNTIKAN TEMPLATE BARU */}
           <button 
             onClick={handleMuatTemplateAsas}
             className="w-full sm:w-auto bg-slate-950 border border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-400 text-[10px] font-mono font-black px-3 py-1.5 transition-all shadow-[2px_2px_0px_0px_rgba(245,158,11,0.2)]"
@@ -95,7 +96,6 @@ export default function BorangStudioKreatif({
           </button>
         </div>
 
-        {/* PANEL UTALITI INPUT SUNTIKAN LAGU YOUTUBE */}
         <div className="mb-6 p-4 bg-slate-950 border border-slate-850 rounded-none font-mono">
           <label className="block text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-1.5">
             🎵 PAUTAN LAGU LATAR BELAKANG (YOUTUBE URL)
@@ -121,13 +121,13 @@ export default function BorangStudioKreatif({
         </div>
 
         <form onSubmit={handleSimpanKeR2} className="space-y-5">
-          <div>
+          <div className="hidden">
             <label className="block text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider mb-1.5">
-              📂 NAMA TERATAK (Akan jadi url laman digital anda)
+              📂 NAMA TERATAK
             </label>
             <input 
               type="text"
-              placeholder="Contoh: braderdin, testabangku"
+              readOnly
               value={namaPengguna}
               onChange={(e) => setNamaPengguna(e.target.value)}
               className="w-full bg-slate-950 border-2 border-slate-800 rounded-none px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-700"
@@ -136,10 +136,10 @@ export default function BorangStudioKreatif({
 
           <div>
             <label className="block text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider mb-1.5">
-              📝 KOD SUMBER HTML / STYLE CSS
+              📝 KOD SUMBER ({failAktif?.name.toUpperCase() || "INDEX.HTML"})
             </label>
             <textarea 
-              rows={11}
+              rows={14}
               value={kodHtml}
               onChange={(e) => setKodHtml(e.target.value)}
               className="w-full bg-slate-950 border-2 border-slate-800 rounded-none p-4 font-mono text-xs text-yellow-300 focus:outline-none focus:border-emerald-500 transition-colors resize-none shadow-inner"
@@ -151,7 +151,7 @@ export default function BorangStudioKreatif({
             disabled={loading}
             className="w-full bg-slate-950 border-2 border-emerald-500 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-mono font-black py-3.5 px-4 text-xs tracking-widest uppercase transition-all shadow-[4px_4px_0px_0px_rgba(16,185,129,0.3)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-40"
           >
-            {loading ? "⏳ SEDANG MEMPROSES FAIL..." : "🚀 PUNTAK MASUK KE CLOUDFLARE R2"}
+            {loading ? "⏳ SEDANG MENYIMPAN FAIL..." : `🚀 KUNCI KOD KE FAIL [ ${failAktif?.name.toUpperCase()} ]`}
           </button>
         </form>
 

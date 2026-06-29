@@ -10,6 +10,7 @@ import BorangStudioKreatif from '../components/BorangStudioKreatif';
 import ButangGoogleLogin from '../components/ButangGoogleLogin';
 import MenuNavigasiSiber from '../components/MenuNavigasiSiber';
 import TuntutNamaTeratak from '../components/TuntutNamaTeratak';
+import PengurusFailGrid from '../components/PengurusFailGrid'; // ➔ TAMBAHAN: Import Pengurus Fail Grid
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -18,8 +19,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function Home() {
   // --- STATE UTAMA ---
   const [user, setUser] = useState(null);
-  const [hasProfil, setHasProfil] = useState(false); // Penanda aras akaun dah ada username atau belum
-  const [wargaLive, setWargaLive] = useState([]);    // Menyimpan senarai nama folder tulen dari R2
+  const [hasProfil, setHasProfil] = useState(false); 
+  const [wargaLive, setWargaLive] = useState([]);    
   const [mesejDinamik, setMesejDinamik] = useState("Menghubung satelit Supabase... 📡");
   
   // --- STATE TUNTUT PROFILE ---
@@ -34,12 +35,23 @@ export default function Home() {
   const [statusR2, setStatusR2] = useState("");
   const [lamanBerjaya, setLamanBerjaya] = useState("");
 
-  // ➔ TAMBAHAN STATE: Peti Surat Ikatan Jiran & Top 8
+  // ➔ TAMBAHAN STATE KUNCI: Menjejak fail aktif yang dipilih dari grid Neocities
+  const [failAktif, setFailAktif] = useState({ name: "index.html", path: "index.html" });
+
+  // --- STATE PETI SURAT & JIRAN ---
   const [permintaanJiran, setPermintaanJiran] = useState([]);
   const [senaraiJiranIntim, setSenaraiJiranIntim] = useState([]);
-  const [inputSlot, setInputSlot] = useState({}); // Menyimpan input teks sementara bagi setiap slot
+  const [inputSlot, setInputSlot] = useState({}); 
 
-  // Ambil permohonan jiran berstatus pending untuk akaun ini
+  // Fungsi mengendalikan pertukaran fail apabila pengguna klik fail di grid
+  function handlePilihFailDariGrid(fail) {
+    setFailAktif({ name: fail.nama, path: fail.laluanFull });
+    setKodHtml(fail.kandungan || "");
+    
+    // Berikan maklum balas toast mini di console atau alert jika perlu
+    console.log(`[SYSTEM]: Menukar fokus editor ke fail -> ${fail.laluanFull}`);
+  }
+
   async function ambilPermintaanJiran(usernameAkaun) {
     try {
       const { data, error } = await supabase
@@ -56,7 +68,6 @@ export default function Home() {
     }
   }
 
-  // ➔ TAMBAHAN FUNGSI: Ambil senarai Top 8 Jiran Intim dari Supabase
   async function ambilJiranIntim(userId) {
     try {
       const { data, error } = await supabase
@@ -73,7 +84,6 @@ export default function Home() {
     }
   }
 
-  // Logik Terima atau Tolak Permintaan Jiran
   async function handleUrusJiran(idRekod, statusBaru) {
     try {
       const { error } = await supabase
@@ -96,7 +106,6 @@ export default function Home() {
     }
   }
 
-  // ➔ TAMBAHAN FUNGSI: Simpan/Kunci Jiran ke Slot Pilihan
   async function handleKunciJiranIntim(nomborSlot) {
     const targetUsername = inputSlot[nomborSlot]?.toLowerCase().trim();
     if (!targetUsername) {
@@ -104,7 +113,6 @@ export default function Home() {
       return;
     }
 
-    // A. Sahkan sama ada jiran tersebut wujud dalam kampung siber
     const { data: jiranWujud } = await supabase
       .from('warga_profil')
       .select('id')
@@ -116,7 +124,6 @@ export default function Home() {
       return;
     }
 
-    // B. Masukkan ke dalam database jiran_intim
     const { error } = await supabase
       .from('jiran_intim')
       .insert({
@@ -138,7 +145,6 @@ export default function Home() {
     }
   }
 
-  // ➔ PEMBAIKAN TYPO: Padam Jiran dari Slot (Jarak 'sah Padam' dibuang)
   async function handlePadamJiranIntim(idRekod) {
     const sahPadam = window.confirm("⚠️ Anda pasti ingin mengosongkan slot jiran intim ini?");
     if (!sahPadam) return;
@@ -155,7 +161,6 @@ export default function Home() {
     }
   }
 
-  // Fungsi menyemak status profil sekaligus menarik kod lama dari R2 jika wujud
   async function semakProfilWarga(currentUser) {
     if (!currentUser) return;
     const { data } = await supabase
@@ -165,14 +170,12 @@ export default function Home() {
       .maybeSingle();
 
     if (data) {
-      setNamaPengguna(data.username); // Otomatik mengunci nama folder mengikut username unik mereka
+      setNamaPengguna(data.username); 
       setHasProfil(true);
       
-      // Panggil fungsi semak peti surat & jiran intim sebaik sahaja profil disahkan
       await ambilPermintaanJiran(data.username);
       await ambilJiranIntim(currentUser.id);
       
-      // ➔ SUNTIKAN MAGIS: Tarik kod sedia ada dari R2 supaya boleh terus di-edit semula!
       try {
         const amarahRespon = await fetch(`/api/upload?username=${data.username}`);
         const dataKod = await amarahRespon.json();
@@ -187,13 +190,12 @@ export default function Home() {
     }
   }
 
-  // Fungsi mengambil direktori warga sebenar dari Cloudflare R2 secara LIVE
   async function ambilWargaR2() {
     try {
       const respon = await fetch("/api/warga");
       const hasil = await respon.json();
       if (hasil.success) {
-        setWargaLive(hasil.warga.slice(0, 5)); // Papar 5 teratak paling aktif terkini di halaman utama
+        setWargaLive(hasil.warga.slice(0, 5)); 
       }
     } catch (err) {
       console.error("Gagal menarik senarai warga.");
@@ -206,7 +208,6 @@ export default function Home() {
       if (projek_data && projek_data[0]) setMesejDinamik(projek_data[0].mesej);
     }
 
-    // Pantau isyarat perpindahan login/logout akaun Google secara real-time
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -227,7 +228,6 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fungsi mendaftarkan nama teratak unik ke pangkalan data kebal Supabase
   async function handleCiptaProfil(e) {
     e.preventDefault();
     if (!usernameInput || usernameInput.length < 3) {
@@ -251,7 +251,7 @@ export default function Home() {
       } else {
         setNamaPengguna(usernameInput);
         setHasProfil(true);
-        await ambilWargaR2(); // Segarkan direktori live serta-merta
+        await ambilWargaR2(); 
       }
     } catch (err) {
       setErrorProfil("Ralat Sistem: Gagal menuntut nama.");
@@ -274,20 +274,21 @@ export default function Home() {
   async function handleSimpanKeR2(e) {
     e.preventDefault();
     setLoading(true);
-    setStatusR2("Sedang menghantar fail ke Cloudflare R2... 🚀");
+    setStatusR2(`Sedang mengemaskini fail [${failAktif.path}] ke Cloudflare R2... 🚀`);
     setLamanBerjaya("");
 
     try {
       const hantarData = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ namaPengguna, kodHtml }),
+        // ➔ PERUBAHAN SENI BINA: Mengirim laluan fail dinamik ke R2 API
+        body: JSON.stringify({ namaPengguna, kodHtml, pathFailBaru: failAktif.path }),
       });
       const keputusan = await hantarData.json();
       if (keputusan.success) {
-        setStatusR2(`🎉 Berjaya! Teratak anda selamat dikemaskini.`);
+        setStatusR2(`🎉 Berjaya! Fail [${failAktif.name}] selamat dikemaskini.`);
         setLamanBerjaya(namaPengguna.toLowerCase());
-        await ambilWargaR2(); // Segarkan senarai teratak di landing page secara automatik
+        await ambilWargaR2(); 
       } else {
         setStatusR2(`❌ Gagal: ${keputusan.error || keputusan.message}`);
       }
@@ -300,10 +301,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col selection:bg-pink-500 selection:text-white">
-      
       <MarqueePengumuman />
 
-      {/* 🛠️ BAR NAVIGASI UTAMA (MINI TOOLBAR TOP BAR KORNER KE KORNER) */}
       <header className="w-full bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between font-mono text-[11px]">
         <div className="flex items-center gap-3 text-slate-400 select-none">
           <span className="text-pink-500 font-bold">KAMPUNG_SIBER_v1.0</span>
@@ -312,15 +311,11 @@ export default function Home() {
           <Link href="/kitab" className="hover:text-white transition-colors">📜 KITAB_HTML</Link>
           <Link href="/kitab_grafik" className="hover:text-white transition-colors">🎨 KITAB_GRAFIK</Link>
         </div>
-
         <ButangGoogleLogin user={user} handleLogin={handleLoginGoogle} handleLogout={handleLogout} />
       </header>
 
       <div className="max-w-5xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center gap-8">
         
-        {/* ========================================================= */}
-        {/* MOD 1: GUEST MODE (BELUM DAFTAR/LOG MASUK AKAUN GOOGLE)     */}
-        {/* ========================================================= */}
         {!user && (
           <div className="space-y-8 transition-all duration-300">
             <div className="text-center p-8 md:p-12 bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] max-w-3xl mx-auto relative overflow-hidden">
@@ -358,9 +353,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* ======================================================= */}
-        {/* MOD 2: LOGGED IN TAPI BELUM TUNTUT USERNAME KEKAL         */}
-        {/* ======================================================= */}
         {user && !hasProfil && (
           <TuntutNamaTeratak 
             usernameInput={usernameInput}
@@ -371,14 +363,11 @@ export default function Home() {
           />
         )}
 
-        {/* ======================================================= */}
-        {/* MOD 3: WARGA TULEN (DAH LOG IN & DAH ADA PROFILE KEKAL)  */}
-        {/* ======================================================= */}
         {user && hasProfil && (
           <div className="space-y-6 transition-all duration-300">
             <div className="p-6 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#3b82f6] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h1 className="text-xl md:text-2xl font-black font-mono text-blue-400 uppercase tracking-tight">🎛️ BILIK KAWALAN SIBER INDIVIDU</h1>
+                <h1 className="text-xl md:text-2xl font-black font-mono text-blue-400 uppercase tracking-tight">🗂️ BILIK KAWALAN SIBER INDIVIDU</h1>
                 <p className="text-xs text-slate-400 mt-0.5 font-mono">
                   Selamat kembali warga <span className="text-pink-400 font-bold">@{namaPengguna}</span>. Selamat menghias profil peribadi anda!
                 </p>
@@ -394,8 +383,8 @@ export default function Home() {
             {/* PETI SURAT NOTIFIKASI JIRAN TETANGGA */}
             {permintaanJiran.length > 0 && (
               <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#ec4899] animate-fadeIn">
-                <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-[11px] text-slate-300 select-none">
-                  <span className="flex items-center gap-1.5">📬 peti_surat_jiran.exe ({permintaanJiran.length})</span>
+                <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-xs text-slate-300 select-none">
+                  <span>📬 peti_surat_jiran.exe ({permintaanJiran.length})</span>
                   <span className="text-[9px] text-pink-400 font-bold animate-pulse">PERMOHONAN BARU</span>
                 </div>
                 <div className="p-4 font-mono text-xs space-y-3">
@@ -427,10 +416,10 @@ export default function Home() {
               </div>
             )}
 
-            {/* PANEL PENGURUS JIRAN INTIM TOP 8 (RETRO STYLE) */}
+            {/* PANEL PENGURUS JIRAN INTIM TOP 8 */}
             <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308]">
-              <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-[11px] text-slate-300 select-none">
-                <span className="flex items-center gap-1.5">⚙️ pengurus_jiran_intim.exe (Top 8 Management)</span>
+              <div className="bg-slate-800 px-3 py-1.5 flex items-center justify-between border-b-2 border-slate-800 font-mono text-xs text-slate-300 select-none">
+                <span>⚙️ pengurus_jiran_intim.exe (Top 8 Management)</span>
                 <span className="text-[9px] text-yellow-400 font-bold">SUSUN GRID MYSPACE</span>
               </div>
               <div className="p-4 font-mono text-xs">
@@ -446,7 +435,6 @@ export default function Home() {
                     return (
                       <div key={slotNum} className="bg-slate-950 border border-slate-850 p-2 flex items-center justify-between gap-2">
                         <span className="text-slate-500 text-[11px] font-bold">Slot 0{slotNum}:</span>
-                        
                         {jiranDitemui ? (
                           <div className="flex-1 flex items-center justify-between pl-2 bg-slate-900 border border-slate-800/60 py-1">
                             <span className="text-pink-400 font-bold">@{jiranDitemui.jiran_username}</span>
@@ -463,7 +451,7 @@ export default function Home() {
                               type="text"
                               placeholder="Nama teratak..."
                               value={inputSlot[slotNum] || ""}
-                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: i === slotNum ? prev[slotNum] : e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
+                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
                               className="flex-1 bg-slate-900 border border-slate-850 px-2 py-1 text-[11px] text-yellow-400 placeholder-slate-700 focus:outline-none"
                             />
                             <button
@@ -481,6 +469,12 @@ export default function Home() {
               </div>
             </div>
 
+            {/* ➔ SUNTIKAN INTEGRASI: Letakkan Pengurus Fail Grid di Atas Teks Editor */}
+            <PengurusFailGrid 
+              namaPengguna={namaPengguna} 
+              onFileSelect={handlePilihFailDariGrid} 
+            />
+
             {/* EDITOR TERATAK PERIBADI YANG DIKUNCI IKUT USERNAME ASLI */}
             <BorangStudioKreatif 
               namaPengguna={namaPengguna}
@@ -491,6 +485,7 @@ export default function Home() {
               loading={loading}
               statusR2={statusR2}
               lamanBerjaya={lamanBerjaya}
+              failAktif={failAktif} // ➔ Hantar info fail aktif ke editor
             />
           </div>
         )}
