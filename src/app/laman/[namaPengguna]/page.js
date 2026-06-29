@@ -1,4 +1,5 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import KomponenKomenDanKaunter from "../../../components/KomponenKomenDanKaunter"; // ➔ KUNCI SUNTIKAN BARU
 
 // 1. Inisialisasi Hubungan R2 di sebelah Server (Kekal pakai kunci .env.local asal abang)
 const r2Client = new S3Client({
@@ -36,9 +37,15 @@ export default async function LamanWargaSiber({ params }) {
     // 3. Tukar data binary R2 kepada teks HTML mentah
     const kodHtmlAsli = await tukarStreamKeTeks(responR2.Body);
 
-    // 4. MAGIS UTAMA: Pancarkan kod HTML/CSS asli pengguna secara total ke skrin pelawat!
+    // 4. MAGIS UTAMA: Pancarkan kod HTML asli berserta Tembok Buku Pelawat & Kaunter Hit!
     return (
-      <div dangerouslySetInnerHTML={{ __html: kodHtmlAsli }} />
+      <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
+        {/* Paparan Teratak HTML Bebas Rekaan Warga */}
+        <div dangerouslySetInnerHTML={{ __html: kodHtmlAsli }} />
+
+        {/* Suntikan Blok Komuniti (Buku Pelawat + Kaunter LED + Lencana Sahabat) */}
+        <KomponenKomenDanKaunter namaPengguna={namaPengguna} />
+      </div>
     );
 
   } catch (error) {

@@ -11,29 +11,56 @@ export default function BorangStudioKreatif({
   statusR2,
   lamanBerjaya
 }) {
-  // ➔ STATE TEMPATAN BARU: Untuk menguruskan input pautan lagu
   const [inputLagu, setInputLagu] = useState("");
   const [notifikasiLagu, setNotifikasiLagu] = useState("");
 
-  // Fungsi magis mengekstrak ID YouTube dan menyuntik kod pemain ke dalam editor
+  // ➔ SUNTIKAN BARU: Fungsi mengisi template asas retro secara automatik
+  function handleMuatTemplateAsas(e) {
+    e.preventDefault();
+    const confirmMuat = window.confirm("⚠️ Amaran abangku! Memuatkan template akan memadamkan semua kod sedia ada dalam editor. Anda pasti?");
+    
+    if (confirmMuat) {
+      const templateRetroAsli = `<div style="background-color: #020617; color: #ffffff; font-family: monospace; padding: 20px; border: 4px double #ec4899; max-width: 600px; margin: 0 auto;">
+  
+  <marquee style="background-color: #ec4899; color: #020617; font-weight: bold; padding: 5px; margin-bottom: 20px;">
+    🌟 SELAMAT DATANG KE TERATAK SIBER SAYA! PERGHI MANTAP... 🌟
+  </marquee>
+
+  <div style="text-align: center; margin-bottom: 25px;">
+    <img src="https://api.dicebear.com/7.x/pixel-art/svg" alt="Avatar" style="border: 3px solid #10b981; width: 100px; height: 100px; background-color: #0f172a; padding: 5px;" />
+    <h1 style="color: #10b981; font-size: 20px; margin-top: 10px; text-transform: uppercase;">🌐 Teratak @${namaPengguna || 'warga'}</h1>
+  </div>
+
+  <fieldset style="border: 2px dashed #3b82f6; padding: 15px; margin-bottom: 20px;">
+    <legend style="color: #3b82f6; font-weight: bold; padding: 0 5px;">📜 BIODATA WARGA</legend>
+    <p><b>Nama:</b> ${namaPengguna || 'Anak Watan Siber'}</p>
+    <p><b>Status:</b> Sedang Bertukang Kod Malam-Malam ☕</p>
+    <p><b>Misi:</b> Menghias teratak siber paling kacak tanpa algoritma!</p>
+  </fieldset>
+
+  <div style="background-color: #0f172a; border: 1px solid #334155; padding: 15px; font-size: 12px; line-height: 1.6;">
+    <h3 style="color: #f59e0b; margin-top: 0;">📝 TENTANG SAYA</h3>
+    Salam perkenalan! Ini adalah laman web peribadi saya yang disimpan terus ke dalam storan Cloudflare R2 secara bebas iklan. Sila tinggalkan jejak digital anda di Buku Pelawat bawah ya!
+  </div>
+
+</div>`;
+      
+      setKodHtml(templateRetroAsli);
+    }
+  }
+
   function handleSuntikMuzikLatar(e) {
     e.preventDefault();
     if (!inputLagu) {
       setNotifikasiLagu("⚠️ Sila isi pautan YouTube abangku!");
       return;
     }
-
-    // Corak regex kegemaran pembangun senior untuk tangkap ID YouTube dari pelbagai jenis URL
     const corakIdYoutube = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
     const semakPautan = inputLagu.match(corakIdYoutube);
 
     if (semakPautan && semakPautan[1]) {
       const videoId = semakPautan[1];
-      
-      // Kod pemutar muzik latar belakang halimunan & auto berpusing selamanya (loop)
       const kodIframeMuzik = `\n\n\n<iframe width="0" height="0" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0" allow="autoplay" style="display:none; visibility:hidden;"></iframe>\n`;
-      
-      // Suntik masuk kod muzik di bahagian paling bawah kod HTML sedia ada
       setKodHtml((kodLama) => kodLama + kodIframeMuzik);
       setInputLagu("");
       setNotifikasiLagu("🎉 Muzik latar belakang berjaya disuntik ke dalam HTML abang!");
@@ -54,13 +81,21 @@ export default function BorangStudioKreatif({
       </div>
       
       <div className="p-6">
-        <p className="text-xs text-slate-400 mb-6 font-mono">
-          [SILA TAIP KOD DI SINI]: Cipta nama folder dan masukkan struktur HTML/CSS abang di bawah untuk disimpan ke Cloudflare R2 Storan.
-        </p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+          <p className="text-xs text-slate-400 font-mono">
+            [SILA TAIP KOD DI SINI]: Cipta nama folder dan masukkan struktur HTML/CSS abang di bawah.
+          </p>
+          
+          {/* ➔ BUTANG SUNTIKAN TEMPLATE BARU */}
+          <button 
+            onClick={handleMuatTemplateAsas}
+            className="w-full sm:w-auto bg-slate-950 border border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-400 text-[10px] font-mono font-black px-3 py-1.5 transition-all shadow-[2px_2px_0px_0px_rgba(245,158,11,0.2)]"
+          >
+            ⚙️ GUNAKAN TEMPLATE ASAS RETRO
+          </button>
+        </div>
 
-        {/* ========================================================= */}
-        {/* PANEL BARU: UTALITI INPUT SUNTIKAN LAGU YOUTUBE             */}
-        {/* ========================================================= */}
+        {/* PANEL UTALITI INPUT SUNTIKAN LAGU YOUTUBE */}
         <div className="mb-6 p-4 bg-slate-950 border border-slate-850 rounded-none font-mono">
           <label className="block text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-1.5">
             🎵 PAUTAN LAGU LATAR BELAKANG (YOUTUBE URL)
