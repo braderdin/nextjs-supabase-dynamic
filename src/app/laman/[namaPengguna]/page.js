@@ -1,7 +1,9 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import KomponenKomenDanKaunter from "../../../components/KomponenKomenDanKaunter"; // ➔ KUNCI SUNTIKAN BARU
+import { createClient } from "@supabase/supabase-js"; // ➔ TAMBAHAN: Import Supabase untuk Server Component
+import KomponenKomenDanKaunter from "../../../components/KomponenKomenDanKaunter";
+import WidgetJiranIntim from "../../../components/WidgetJiranIntim"; // ➔ TAMBAHAN: Import Komponen Modular Top 8
 
-// 1. Inisialisasi Hubungan R2 di sebelah Server (Kekal pakai kunci .env.local asal abang)
+// Inisialisasi Hubungan R2
 const r2Client = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -10,6 +12,11 @@ const r2Client = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 });
+
+// Inisialisasi Hubungan Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Fungsi pembantu untuk menukar penstriman data R2 (Stream) menjadi teks HTML biasa
 async function tukarStreamKeTeks(stream) {
@@ -25,7 +32,29 @@ export default async function LamanWargaSiber({ params }) {
   const { namaPengguna } = await params; 
   const namaFail = `${namaPengguna.toLowerCase()}/index.html`;
 
+  let senaraiJiranIntim = [];
+
   try {
+    // ➔ TAMBAHAN LOGIK: Dapatkan ID profil tuan tanah teratak ini
+    const { data: profil } = await supabase
+      .from('warga_profil')
+      .select('id')
+      .eq('username', namaPengguna.toLowerCase())
+      .maybeSingle();
+
+    if (profil) {
+      // ➔ TAMBAHAN LOGIK: Tarik senarai jiran intim yang telah ditetapkan oleh tuan tanah
+      const { data: jiranData } = await supabase
+        .from('jiran_intim')
+        .select('jiran_username, slot_kedudukan')
+        .eq('user_id', profil.id)
+        .order('slot_kedudukan', { ascending: true });
+      
+      if (jiranData) {
+        senaraiJiranIntim = jiranData;
+      }
+    }
+
     // 2. Arahkan sistem untuk ambil fail index.html dari folder warga di R2
     const arahanAmbil = new GetObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
@@ -37,11 +66,16 @@ export default async function LamanWargaSiber({ params }) {
     // 3. Tukar data binary R2 kepada teks HTML mentah
     const kodHtmlAsli = await tukarStreamKeTeks(responR2.Body);
 
-    // 4. MAGIS UTAMA: Pancarkan kod HTML asli berserta Tembok Buku Pelawat & Kaunter Hit!
+    // 4. MAGIS UTAMA: Pancarkan kod HTML asli, Widget Top 8, serta Buku Pelawat!
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
         {/* Paparan Teratak HTML Bebas Rekaan Warga */}
         <div dangerouslySetInnerHTML={{ __html: kodHtmlAsli }} />
+
+        {/* ➔ TAMBAHAN UI: Letakkan Widget Jiran Intim Top 8 di bawah teratak (Lebar diselaraskan dengan Buku Pelawat) */}
+        <div className="max-w-xl w-full mx-auto px-4 mt-8">
+          <WidgetJiranIntim senaraiJiran={senaraiJiranIntim} />
+        </div>
 
         {/* Suntikan Blok Komuniti (Buku Pelawat + Kaunter LED + Lencana Sahabat) */}
         <KomponenKomenDanKaunter namaPengguna={namaPengguna} />
