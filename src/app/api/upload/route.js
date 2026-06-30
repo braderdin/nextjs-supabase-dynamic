@@ -1,6 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
-import { z } from "zod"; 
+import { z } from "zod";
 
 const r2Client = new S3Client({
   region: "auto",
@@ -26,7 +26,7 @@ const PEMETAAN_MIME = {
   'ttf': 'font/ttf',
   'woff': 'font/woff',
   'woff2': 'font/woff2',
-  'keep': 'text/plain' // ➔ PEMBAIKAN: Ditambah untuk membenarkan folder placeholder kosong
+  'keep': 'text/plain' 
 };
 
 const dapatkanWargaSchema = z.object({
@@ -39,32 +39,29 @@ const muatNaikTeratakSchema = z.object({
     .min(3, { message: "Nama teratak mestilah sekurang-kurangnya 3 aksara abangku! ⚠️" })
     .max(15, { message: "Nama teratak tidak boleh melebihi 15 aksara abangku! ⚠️" })
     .regex(/^[a-zA-Z0-9]+$/, { message: "Nama teratak hanya boleh mengandungi huruf dan nombor sahaja! ⚠️" }),
-  
   kodHtml: z.string({ required_error: "Kandungan fail diperlukan abangku! ⚠️" })
-    .min(0, { message: "Kandungan fail tidak boleh kosong abangku! ⚠️" }) // ➔ PEMBAIKAN: Ditukar ke 0 supaya fail baharu yang kosong boleh dicipta
+    .min(0, { message: "Kandungan fail tidak boleh kosong abangku! ⚠️" })
     .refine((val) => Buffer.byteLength(val, 'utf8') <= 51200, {
-      message: "⚠️ Fail ditolak! Saiz fail anda terlalu besar (Maksimum 50KB sahaja)."
+      message: "❌ Fail ditolak! Saiz fail anda terlalu besar (Maksimum 50KB sahaja)."
     }),
-
-  pathFailBaru: z.string().optional() 
+  pathFailBaru: z.string().optional()
 }).refine((data) => {
   const laluanMesej = data.pathFailBaru || "index.html";
   const ekstensi = laluanMesej.split('.').pop().toLowerCase();
   return Object.keys(PEMETAAN_MIME).includes(ekstensi);
 }, {
-  message: "❌ Jenis fail disekat! Sistem mengesan cubaan memuat naik jenis fail berisiko tinggi.",
+  message: "❌ Jenis fail disekat! Sila gunakan jenis fail statik siber yang sah sahaja.",
   path: ["pathFailBaru"]
 }).refine((data) => {
   const laluanMesej = data.pathFailBaru || "index.html";
   const ekstensi = laluanMesej.split('.').pop().toLowerCase();
-  
   if (ekstensi === 'html' || ekstensi === 'htm') {
     const corakBahaya = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|javascript:|onerror=|onload=/gi;
     return !corakBahaya.test(data.kodHtml);
   }
   return true;
 }, {
-  message: "❌ Amaran Keamanan! Sistem mengesan ada suntikan kod larangan berbahaya di dalam fail HTML anda.",
+  message: "🛑 Amaran Keselamatan! Sistem mengesan ada suntikan skrip logik larangan (<script> / inline event) di dalam fail HTML anda.",
   path: ["kodHtml"]
 });
 
@@ -83,15 +80,16 @@ export async function GET(request) {
     const pathSpesifik = searchParams.get("path") || "index.html";
 
     const semakInput = dapatkanWargaSchema.safeParse({ username });
+    // Mula: Pembaikan pepijat .errors kepada .issues
     if (!semakInput.success) {
       return NextResponse.json(
-        { success: false, message: semakInput.error.errors[0].message }, 
+        { success: false, message: semakInput.error.issues[0]?.message || "Ralat input dikesan." }, 
         { status: 400 }
       );
     }
+    // Tamat: Pembaikan pepijat .errors kepada .issues
 
     const namaFail = `${username.toLowerCase()}/${pathSpesifik.replace(/^\/+/, '')}`;
-
     const arahanAmbil = new GetObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: namaFail,
@@ -104,7 +102,6 @@ export async function GET(request) {
       success: true, 
       kodHtml: kodHtmlAsli 
     });
-
   } catch (error) {
     return NextResponse.json({ 
       success: false, 
@@ -116,19 +113,20 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const dataBadan = await request.json();
-
     const semakData = muatNaikTeratakSchema.safeParse(dataBadan);
+    
+    // Mula: Pembaikan pepijat .errors kepada .issues
     if (!semakData.success) {
       return NextResponse.json(
-        { success: false, message: semakData.error.errors[0].message }, 
+        { success: false, message: semakData.error.issues[0]?.message || "Ralat pengesahan fail." }, 
         { status: 400 }
       );
     }
+    // Tamat: Pembaikan pepijat .errors kepada .issues
 
     const { namaPengguna, kodHtml, pathFailBaru } = semakData.data;
     const subLaluanFail = pathFailBaru ? pathFailBaru.replace(/^\/+/, '') : "index.html";
     const namaFailFull = `${namaPengguna.toLowerCase()}/${subLaluanFail}`;
-
     const ekstensiFail = subLaluanFail.split('.').pop().toLowerCase();
     const contentTypeTerpilih = PEMETAAN_MIME[ekstensiFail] || 'text/plain';
 
@@ -143,10 +141,9 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: `Fail [${subLaluanFail}] berjaya dikunci masuk ke Cloudflare R2! 🎉`,
+      message: `Fail [${subLaluanFail}] berjaya dikunci masuk ke Cloudflare R2! 🛰️`,
       lokasiFail: namaFailFull,
     });
-
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message }, 
