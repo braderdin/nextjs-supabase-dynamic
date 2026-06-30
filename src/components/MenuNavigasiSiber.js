@@ -4,17 +4,18 @@ import { usePathname } from 'next/navigation';
 export default function MenuNavigasiSiber() {
   const pathname = usePathname();
 
-  // Mula: Tambahan Laluan Menu Format Fail Sah
+  // Mula: Susunan Laluan Menu Baharu Mengikut Misi Abangku (Termasuk Laman Saya)
   const senaraiMenu = [
     { nama: "🏠 Teraju Utama", pautan: "/" },
+    { nama: "🚀 Laman Saya", pautan: "/laman/abangdin" },
+    { nama: "📨 Surat Layang", pautan: "/surat-layang" },
     { nama: "🌐 Jelajah Kampung", pautan: "/jelajah" },
+    { nama: "⛺ Pondok Siber", pautan: "/pondok" },
     { nama: "📜 Kitab HTML", pautan: "/kitab" },
     { nama: "🎨 Kitab Grafik", pautan: "/kitab_grafik" },
-    { nama: "⛺ Pondok Siber", pautan: "/pondok" },      // Pintu masuk BBS Forum
-    { nama: "📨 Surat Layang", pautan: "/surat-layang" }, // Pintu masuk Realtime DM
-    { nama: "📋 Format Fail Sah", pautan: "/DOKUMENTASI_FORMAT_FAIL_SAH" }, // Pautan dinamik ke halaman dokumentasi format fail sah
+    { nama: "📋 Format Fail Sah", pautan: "/DOKUMENTASI_FORMAT_FAIL_SAH" },
   ];
-  // Tamat: Tambahan Laluan Menu Format Fail Sah
+  // Tamat: Susunan Laluan Menu Baharu Mengikut Misi Abangku
 
   return (
     <nav className="w-full bg-slate-900 border-2 border-slate-800 p-2 shadow-[4px_4px_0px_0px_#ec4899]">
@@ -23,7 +24,7 @@ export default function MenuNavigasiSiber() {
           🧭 MENU_UTAMA.SYS :
         </div>
         
-        {/* Susunan grid-cols-2 automatik membahagi 6 butang dengan seimbang pada skrin telefon */}
+        {/* Mula: Kontena Paparan Butang Navigasi Komuniti */}
         <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap flex-1 gap-2">
           {senaraiMenu.map((menu, indeks) => {
             const adakahAktif = pathname === menu.pautan;
@@ -43,6 +44,7 @@ export default function MenuNavigasiSiber() {
             );
           })}
         </div>
+        {/* Tamat: Kontena Paparan Butang Navigasi Komuniti */}
       </div>
     </nav>
   );
