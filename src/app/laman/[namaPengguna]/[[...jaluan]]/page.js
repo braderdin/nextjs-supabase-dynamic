@@ -44,7 +44,7 @@ export default async function LamanWargaSiber({ params }) {
       .maybeSingle();
 
     if (profil) {
-      profilWujud = true; // Mengesahkan bahawa teratak warga ini memang wujud dalam database
+      profilWujud = true; 
       const { data: jiranData } = await supabase
         .from('jiran_intim')
         .select('jiran_username, slot_kedudukan')
@@ -59,7 +59,6 @@ export default async function LamanWargaSiber({ params }) {
     // Tamat: Semakan Profil Warga & Jiran Intim via Supabase
     // =====================================================================
 
-    // Jika nama teratak tiada langsung dalam rekod pangkalan data kampung
     if (!profilWujud) {
       throw new Error("Profil siber ghaib abangku!");
     }
@@ -68,14 +67,12 @@ export default async function LamanWargaSiber({ params }) {
     // Mula: Verifikasi Kewujudan Fail/Folder di R2 (Kunci Paparan 404 Padu)
     // =====================================================================
     try {
-      // Cubaan pertama: Ambil metadata fail secara tepat berdasarkan subPath URL
       const arahanAmbil = new GetObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Key: namaFailFull,
       });
       await r2Client.send(arahanAmbil);
     } catch (errR2) {
-      // Cubaan kedua (Fallback): Jika fail tiada, kemungkinan besar ia adalah folder direktori (cth: /aboutme)
       const folderKeyFallback = `${namaFailFull.replace(/\/$/, '')}/index.html`;
       const arahanFolder = new GetObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
@@ -87,15 +84,12 @@ export default async function LamanWargaSiber({ params }) {
     // Tamat: Verifikasi Kewujudan Fail/Folder di R2
     // =====================================================================
 
-    // Memastikan bar kaunter pelawat dan top 8 jiran muncul jika berada di index utama teratak
     const adakahLamanUtama = subPathFail === 'index.html' || subPathFail === '';
 
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
         
-        {/* ===================================================================== */}
-        {/* Mula: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS)    */}
-        {/* ===================================================================== */}
+        {/* Mula: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS) */}
         <div className={adakahLamanUtama ? "w-full h-[75vh] min-h-[550px] border-b-2 border-slate-900 bg-slate-950" : "w-full h-screen overflow-hidden bg-slate-950"}>
           <iframe 
             src={`/api/raw-serve?username=${namaPengguna}&path=${subPathFail}`}
@@ -103,9 +97,7 @@ export default async function LamanWargaSiber({ params }) {
             sandbox="allow-scripts allow-forms allow-popups"
           />
         </div>
-        {/* ===================================================================== */}
-        {/* Tamat: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS)   */}
-        {/* ===================================================================== */}
+        {/* Tamat: Paparan Iframe Sandboxed Anti-XSS Selamat */}
         
         {adakahLamanUtama && (
           <>
@@ -118,7 +110,6 @@ export default async function LamanWargaSiber({ params }) {
       </div>
     );
   } catch (error) {
-    // Paparan Ralat 404 Klasik Jika Teratak atau Folder Gagal Ditemui di Baldi R2
     return (
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
         <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
