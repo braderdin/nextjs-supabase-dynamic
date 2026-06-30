@@ -90,7 +90,7 @@ export default function Home() {
   async function handleCiptaItemFizikal(namaItem, jenisItem, laluanFullItem, isiKandungan = "") {
     try {
       const payloadHtml = jenisItem === 'fail' 
-        ? (isiKandungan.trim() || `<!-- Fail ${namaItem} Baharu -->`) 
+        ? (isiKandungan.trim() || ``) 
         : "FOLDER_PLACEHOLDER";
 
       const pathHantar = jenisItem === 'fail' ? laluanFullItem : `${laluanFullItem}/.keep`;
@@ -490,13 +490,13 @@ export default function Home() {
                 <div className="bg-slate-950 p-4 border border-slate-800 leading-relaxed text-slate-300">
                   <h3 className="text-yellow-400 font-bold uppercase mb-2">⚠️ Mengapa Terdapat Jenis Fail Terhad / Dilarang?</h3>
                   <p className="mb-3">
-                    Pada masa ini, <b>Terataksiber</b> sedang berusaha untuk berkembang secara mampan. Matlamat kami adalah untuk memberi anda tapak web percuma supaya anda boleh mengatur kandungan dalam apa jua cara yang anda mahukan. Untuk memastikan kami dapat terus melakukan ini, kami perlu melaksanakan langkah-langkah untuk menghalang Terataksiber daripada menjadi <b>"hos pembuangan fail" (file dump host)</b>. Kami tidak mempunyai sumber untuk menangani dan menghalang perkara ini daripada berlaku jika kami membenarkan pengguna memuat naik apa sahaja yang mereka mahu, jadi penyelesaian sementara buat masa ini adalah dengan hanya membenarkan jenis fail yang kami tahu berguna untuk membuat tapak web statik.
+                    Pada masa ini, <b>Terataksiber</b> sedang berusaha untuk berkembang secara mampan. Matlamat kami adalah untuk memberi anda tapak web percuma supaya anda boleh mengatur kandungan dalam apa jua cara yang anda mahukan. Untuk memastikan kami dapat terus melakukan ini, kami need melaksanakan langkah-langkah untuk menghalang Terataksiber daripada menjadi <b>"hos pembuangan fail" (file dump host)</b>. Kami tidak mempunyai sumber untuk menangani and menghalang perkara ini daripada berlaku jika kami membenarkan pengguna memuat naik apa sahaja yang mereka mahu, jadi penyelesaian sementara buat masa ini adalah dengan hanya membenarkan jenis fail yang kami tahu berguna untuk membuat tapak web statik.
                   </p>
                   <p className="mb-3">
-                    Contohnya, membenarkan pengguna untuk mengehos fail boleh laku <b>(EXE)</b> menyediakan cara untuk penyerang mengehoskan kandungan berniat jahat, dan kami mahu meminimumkannya. Selain itu, jika tapak mula digunakan untuk mengehoskan kandungan berniat jahat, ada kemungkinan enjin carian seperti Google akan menghukum kami dalam kedudukan (*ranking*), atau pengendali pusat data kami akan memberitahu kami bahawa kami tidak boleh menjalankan perniagaan dengan mereka, yang akan menjejaskan tapak semua orang di Terataksiber.
+                    Contohnya, membenarkan pengguna untuk mengehos fail boleh laku <b>(EXE)</b> menyediakan cara untuk penyerang mengehoskan kandungan berniat jahat, and kami mahu meminimumkannya. Selain itu, jika tapak mula digunakan untuk mengehoskan kandungan berniat jahat, ada kemungkinan enjin carian seperti Google akan menghukum kami dalam kedudukan (*ranking*), atau pengendali pusat data kami akan memberitahu kami bahawa kami tidak boleh menjalankan perniagaan dengan mereka, yang akan menjejaskan tapak semua orang di Terataksiber.
                   </p>
                   <p>
-                    Muzik <b>MP3</b> dan video <b>MP4</b> mempunyai masalah yang sama, kerana jika kandungan yang dimuat naik menjadi sangat popular ("menjadi viral"), ia akan mengatasi pelayan kami dan menjadikan lebar jalur (*bandwidth*) kami lebih mahal. Dan mengehos kandungan media kaya secara langsung hampir tidak pernah menjadi cara terbaik untuk melakukannya. <b>Soundcloud</b> menyediakan cara yang bagus untuk mengehoskan muzik, dan <b>Youtube</b> melakukan kerja yang sangat baik dengan mengambil video anda, memprosesnya, memastikan ia berfungsi pada semua penyemak imbas, dan kemudian menyediakan cara mudah untuk anda membenamkan (*embed*) kandungan tersebut dalam halaman web anda.
+                    Muzik <b>MP3</b> and video <b>MP4</b> mempunyai masalah yang sama, kerana jika kandungan yang dimuat naik menjadi sangat popular ("menjadi viral"), ia akan mengatasi pelayan kami dan menjadikan lebar jalur (*bandwidth*) kami lebih mahal. Dan mengehos kandungan media kaya secara langsung hampir tidak pernah menjadi cara terbaik untuk melakukannya. <b>Soundcloud</b> menyediakan cara yang bagus untuk mengehoskan muzik, dan <b>Youtube</b> melakukan kerja yang sangat baik dengan mengambil video anda, memprosesnya, memastikan ia berfungsi pada semua penyemak imbas, dan then menyediakan cara mudah untuk anda membenamkan (*embed*) kandungan tersebut dalam halaman web anda.
                   </p>
                 </div>
 
@@ -519,7 +519,7 @@ export default function Home() {
 
                     <div className="bg-slate-950 p-4 border border-slate-850">
                       <span className="text-emerald-400 font-bold block mb-1">⚡ .js / .json (Skrip & Objek Data)</span>
-                      <p className="text-slate-400 text-[11px] mb-2">Untuk logik interaktif atau pemetaan data berstruktur.</p>
+                      <p className="text-slate-400 text-[11px] mb-2">Untuk logik interaktif atau pemetaan data berstructured.</p>
                       <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"// Pemicu log\nconsole.log('Kampung Siber Sedia!');"}</pre>
                     </div>
 
@@ -567,7 +567,8 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Butang Master Commit Tepat Di Bawah Petak Grid Explorer Fail */}
+                {/* Mula: Butang Master Commit Bersatu Tepat Di Bawah Petak Grid Explorer Fail */}
+                {/* Hanya satu butang kommit master dikegakkan di sini untuk mengelakkan ralat kosmetik dan pertindihan */}
                 <div className="p-4 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] font-mono">
                   <button
                     type="button"
@@ -594,6 +595,7 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+                {/* Tamat: Butang Master Commit Bersatu */}
               </div>
             )}
 

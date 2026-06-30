@@ -11,7 +11,7 @@ export default function PengurusFailGrid({
   namaPengguna,
   onCommitProject,
   loadingCommit = false,
-  // Prop kekal dikekalkan di sini untuk mengelakkan ralat berantai pada komponen induk
+  // ➔ 📋 PROP BARU: Fungsi untuk membuka paparan dokumentasi jenis fail
   onShowWhitelist
 }) {
   const [modPaparan, setModPaparan] = useState("grid");
@@ -99,9 +99,14 @@ export default function PengurusFailGrid({
               📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
             </div>
             
-            {/* Mula: Pemindahan Butang JENIS_FAIL.TXT ke Menu Utama Navigasi */}
-            {/* Butang JENIS_FAIL.TXT telah dibuang dari sini dan dipindahkan ke MenuNavigasiSiber.js dengan nama '📋 Format Fail Sah' */}
-            {/* Tamat: Pemindahan Butang JENIS_FAIL.TXT ke Menu Utama Navigasi */}
+            {/* ➔ 📋 SUNTIKAN BARU: Butang Dokumen Jenis Fail Sah (Anak Panah Merah) */}
+            <button
+              type="button"
+              onClick={onShowWhitelist}
+              className="bg-slate-950 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-2 py-1 font-bold text-[10px] uppercase transition-all tracking-tight"
+            >
+              📋 JENIS_FAIL.TXT
+            </button>
           </div>
           
           <div className="flex gap-2">
@@ -295,16 +300,9 @@ export default function PengurusFailGrid({
         </div>
       </div>
 
-      <div className="p-3 bg-slate-950 border-t-2 border-slate-800 select-none">
-        <button
-          type="button"
-          disabled={loadingCommit || senaraiFail.length === 0}
-          onClick={onCommitProject}
-          className="w-full bg-slate-900 border-2 border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-400 font-mono font-black py-2.5 px-4 text-[11px] tracking-wider uppercase transition-all shadow-[3px_3px_0px_0px_rgba(234,179,8,0.2)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          {loadingCommit ? "🔄 SEDANG BERHUBUNG..." : "🚀 KUNCI PROJEK KE PELAYAN (COMMIT)"}
-        </button>
-      </div>
+      {/* Mula: Pembuangan Butang Kommit Bertindih (Disatukan ke butang master di page.js) */}
+      {/* Bahagian footer asal bg-slate-950 bersama button commit sekunder telah dibuang sepenuhnya demi kelancaran UI */}
+      {/* Tamat: Pembuangan Butang Kommit Bertindih */}
 
     </div>
   );
