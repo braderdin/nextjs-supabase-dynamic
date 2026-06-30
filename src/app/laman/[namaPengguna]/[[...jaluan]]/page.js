@@ -2,7 +2,6 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
 import Link from 'next/link';  
 
-// ➔ PENYELESAIAN ABADI: Guna Absolute Import (@/) untuk elak pening mengira anak tangga folder!
 import KomponenKomenDanKaunter from "@/components/KomponenKomenDanKaunter"; 
 import WidgetJiranIntim from "@/components/WidgetJiranIntim"; 
 
@@ -26,25 +25,40 @@ export default async function LamanWargaSiber({ params }) {
   const namaPengguna = resolvedParams.namaPengguna;
   const jaluan = resolvedParams.jaluan;
 
-  // Menyusun semula laluan fail secara dinamik
   const subPathFail = jaluan && jaluan.length > 0 ? jaluan.join('/') : 'index.html';
   const namaFailFull = `${namaPengguna.toLowerCase()}/${subPathFail}`;
 
   let senaraiJiranIntim = [];
   let profilWujud = false;
+  
+  // Mula: SUNTIKAN VARIABLE DATA FASA 3
+  let dataMood = { ikon: "☕", teks: "Bertukang Kod Malam-Malam" };
+  let senaraiLencana = [];
+  let urlJiranKiri = "/";
+  let urlJiranKanan = "/";
+  let urlJiranRawak = "/";
+  // Tamat: SUNTIKAN STATE DATA FASA 3
 
   try {
-    // =====================================================================
-    // Mula: Semakan Profil Warga & Jiran Intim via Supabase
-    // =====================================================================
     const { data: profil } = await supabase
       .from('warga_profil')
-      .select('id')
+      .select('id, mood_ikon, mood_teks, lencana_koleksi')
       .eq('username', namaPengguna.toLowerCase())
       .maybeSingle();
 
     if (profil) {
       profilWujud = true; 
+      
+      // Mengambil Status Emosi Warga (Mood) Sekiranya Wujud
+      if (profil.mood_teks) {
+        dataMood = { teks: profil.mood_teks, ikon: profil.mood_ikon || "☕" };
+      }
+
+      // Mengambil Lencana Kebanggaan Warga
+      if (Array.isArray(profil.lencana_koleksi)) {
+        lencanaWarga = profil.lencana_komen;
+      }
+
       const { data: jiranData } = await supabase
         .from('jiran_intim')
         .select('jiran_username, slot_kedudukan')
@@ -54,50 +68,52 @@ export default async function LamanWargaSiber({ params }) {
       if (jiranData) {
         senaraiJiranIntim = jiranData;
       }
-    }
-    // =====================================================================
-    // Tamat: Semakan Profil Warga & Jiran Intim via Supabase
-    // =====================================================================
 
-    if (!profilWujud) {
-      throw new Error("Profil siber ghaib abangku!");
+      // =====================================================================
+      // Mula: ALGORITMA WEBRING KAMPUNG (Mencari Jiran Kiri, Kanan, & Rawak)
+      // =====================================================================
+      const { data: seluruhWarga } = await supabase
+        .from('warga_profil')
+        .select('username')
+        .order('username', { ascending: true });
+
+      if (selatWarga && seluruhWarga.length > 1) {
+        const indeksSemasa = seluruhWarga.findIndex(w => w.username.toLowerCase() === namaPengguna.toLowerCase());
+        
+        const indeksKiri = indeksSemasa === 0 ? seluruhWarga.length - 1 : indeksSemasa - 1;
+        const indeksKanan = indeks === seluruhWarga.length - 1 ? 0 : indeks + 1;
+        
+        let indeksRawak = Math.floor(Math.random() * seluruhWarga.length);
+        while(indeksRawak === indeks && seluruhWarga.length > 1) {
+          indeksRawak = Math.floor(Math.random() * seluruhAktiviti.length);
+        }
+
+        jiranKiri = `/laman/${seluruhWarga[indeksKiri].username}`;
+        jiranKanan = `/laman/${selaranKanan.username}`;
+        teratakRawak = `/laman/${selaraiWarga[indeksRawak].username}`;
+      }
+      // =====================================================================
+      // Tamat: Webring Kampung (Rangkaian Teratak)
     }
 
-    // =====================================================================
-    // Mula: PEMBAIKAN JITU - Ambil Kandungan Fail/Folder Dari Cloudflare R2 secara Terus
-    // =====================================================================
+    if (!profilWujud) { throw new Error("Profil siber ghaib abangku!"); }
+
     let kodHtmlAsli = "";
     try {
-      const arahanAmbil = new GetObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: namaFailFull,
-      });
+      const arahanAmbil = new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: namaFailFull });
       const responR2 = await r2Client.send(arahanAmbil);
       const chunks = [];
-      for await (const chunk of responR2.Body) {
-        chunks.push(chunk);
-      }
+      for await (const chunk of responR2.Body) { chunks.push(chunk); }
       kodHtmlAsli = Buffer.concat(chunks).toString("utf8");
     } catch (errR2) {
       const folderKeyFallback = `${namaFailFull.replace(/\/$/, '')}/index.html`;
-      const arahanFolder = new GetObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: folderKeyFallback,
-      });
+      const arahanFolder = new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: folderKeyFallback });
       const responFolder = await r2Client.send(arahanFolder);
       const chunks = [];
-      for await (const chunk of responFolder.Body) {
-        chunks.push(chunk);
-      }
+      for await (const chunk of responFolder.Body) { chunks.push(chunk); }
       kodHtmlAsli = Buffer.concat(chunks).toString("utf8");
     }
-    // =====================================================================
-    // Tamat: PEMBAIKAN JITU - Ambil Kandungan Fail/Folder Dari Cloudflare R2 secara Terus
-    // =====================================================================
 
-    // =====================================================================
-    // Mula: Suntikan Skrip Pengesan Ketinggian Teratak untuk Komunikasi Silang
-    // =====================================================================
     const skripResizerMurni = `
       <script>
         (function() {
@@ -116,33 +132,30 @@ export default async function LamanWargaSiber({ params }) {
       </script>
     `;
     const kodHtmlDenganSkrip = kodHtmlAsli + skripResizerMurni;
-    // =====================================================================
-    // Tamat: Suntikan Skrip Pengesan Ketinggian Teratak untuk Komunikasi Silang
-
     const adakahLamanUtama = subPathFail === 'index.html' || subPathFail === '';
 
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
         
-        {/* ===================================================================== */}
-        {/* Mula: Skrip Pembantu Induk Mendengar Isyarat postMessage pada Skrin Warga */}
-        {/* ===================================================================== */}
         <script dangerouslySetInnerHTML={{ __html: `
           window.addEventListener('message', function(acara) {
             if (acara.data && acara.data.type === 'KAMPUNG_SIBER_RESIZE') {
               var teratakIframe = document.getElementById('teratak-iframe');
-              if (teratakIframe) {
-                teratakIframe.style.height = acara.data.height + 'px';
-              }
+              if (teratakIframe) { teratakIframe.style.height = acara.data.height + 'px'; }
             }
           });
         `}} />
-        {/* ===================================================================== */}
-        {/* Tamat: Skrip Pembantu Induk Mendengar Isyarat postMessage pada Skrin Warga */}
 
-        {/* ===================================================================== */}
-        {/* Mula: Paparan Iframe Sandboxed Bersama Konfigurasi Seamless Bersatu */}
-        {/* ===================================================================== */}
+        {/* Mula: Widget Status Emosi (Mood) Berkelip Di Atas Profil Warga */}
+        {adakahLamanUtama && (
+          <div className="w-full bg-slate-900 border-b border-slate-800 py-2 text-center font-mono text-xs text-yellow-400">
+            <span className="animate-pulse bg-yellow-500/10 px-3 py-1 border border-yellow-500/30">
+              ☕ STATUS EMOSI TERATAK: <span className="text-white font-bold uppercase">Sedang Bertukang Kod Malam-Malam ☕</span>
+            </span>
+          </div>
+        )}
+        {/* Tamat: Widget Status Emosi (Mood) Berkelip */}
+
         <div className="w-full bg-slate-950">
           <iframe 
             id="teratak-iframe"
@@ -150,18 +163,41 @@ export default async function LamanWargaSiber({ params }) {
             className="w-full border-0 block transition-all duration-200 ease-out"
             style={{ height: '600px', overflow: 'hidden' }}
             scrolling="no"
-            // ➔ ✅ KEKAL SELAMAT: Token allow-top-navigation-by-user-activation dikekalkan demi kelancaran perpindahan menu
             sandbox="allow-scripts allow-forms allow-popups allow-top-navigation-by-user-activation"
           />
         </div>
-        {/* ===================================================================== */}
-        {/* Tamat: Paparan Iframe Sandboxed Bersama Konfigurasi Seamless Bersatu */}
         
         {adakahLamanUtama && (
           <>
-            <div className="max-w-xl w-full mx-auto px-4 mt-8">
+            {/* Mula: Fasa 3 - Pasar Karat Lencana (Badge Exchange) */}
+            <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs">
+              <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] p-4">
+                <h3 className="text-yellow-400 font-bold mb-3 uppercase tracking-wider text-[11px]">🛡️ Pasar Karat Lencana (88x31 Friend Badges)</h3>
+                <div className="flex flex-wrap gap-2 bg-slate-950 p-3 border border-slate-850 justify-center">
+                  <div className="w-[88px] h-[31px] bg-gradient-to-r from-pink-500 to-purple-600 border border-white text-[7px] text-center flex items-center justify-center font-black uppercase">Warga Asli</div>
+                  <div className="w-[88px] h-[31px] bg-slate-900 border border-slate-700 text-[7px] text-slate-500 text-center flex items-center justify-center">Slot Kosong</div>
+                </div>
+              </div>
+            </div>
+            {/* Tamat: Fasa 3 - Pasar Karat Lencana */}
+
+            <div className="max-w-xl w-full mx-auto px-4 mt-4">
               <WidgetJiranIntim senaraiJiran={senaraiJiranIntim} />
             </div>
+
+            {/* Mula: Nombor 2 - Webring Kampung (Rangkaian Teratak Klasik) */}
+            <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs">
+              <div className="bg-slate-900 border-2 border-slate-800 p-3 shadow-[4px_4px_0px_0px_#ec4899] text-center space-y-2">
+                <span className="text-[10px] text-slate-400 block uppercase tracking-widest">🕸️ RANGKAIAN WEBRING KAMPUNG SIBER 🕸️</span>
+                <div className="flex justify-center gap-2 pt-1">
+                  <Link href={urlJiranKiri} className="bg-slate-950 border border-slate-800 hover:border-pink-500 px-3 py-1.5 font-bold text-pink-400 text-[10px]">◀️ JIRAN KIRI</Link>
+                  <Link href={urlJiranRawak} className="bg-slate-950 border border-yellow-500 hover:bg-yellow-500 hover:text-black px-3 py-1.5 font-bold text-yellow-400 text-[10px]">🎲 TERATAK RAWAK</Link>
+                  <Link href={urlJiranKanan} className="bg-slate-950 border border-slate-800 hover:border-pink-500 px-3 py-1.5 font-bold text-pink-400 text-[10px]">JIRAN KANAN ▶️</Link>
+                </div>
+              </div>
+            </div>
+            {/* Tamat: Nombor 2 - Webring Kampung (Rangkaian Teratak Klasik) */}
+
             <KomponenKomenDanKaunter namaPengguna={namaPengguna} />
           </>
         )}
@@ -172,15 +208,8 @@ export default async function LamanWargaSiber({ params }) {
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
         <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
           <p className="text-red-400 font-bold text-sm mb-2">⚠️ FAIL / TERATAK TIDAK DIJUMPAI</p>
-          <p className="mb-4 leading-relaxed">
-            Maaf abangku, fail <span className="text-pink-400 font-bold">"{subPathFail}"</span> tiada dalam arkib teratak <span className="text-yellow-400 font-bold">@{namaPengguna}</span>.
-          </p>
-          <Link 
-            href="/" 
-            className="inline-block bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-300 hover:text-pink-400 px-4 py-2 font-bold transition-all text-[11px]"
-          >
-            BALIK KE TERAJU UTAMA
-          </Link>
+          <p className="mb-4 leading-relaxed">Maaf abangku, fail "{subPathFail}" tiada dalam arkib.</p>
+          <Link href="/" className="inline-block bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-300 hover:text-pink-400 px-4 py-2 font-bold text-[11px]">BALIK KE TERAJU UTAMA</Link>
         </div>
       </div>
     );
