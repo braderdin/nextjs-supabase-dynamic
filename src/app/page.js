@@ -103,12 +103,10 @@ export default function Home() {
       const data = await res.json();
       
       if (!data.success) {
-        // ➔ AKSI KRITIKAL: Memapar ralat Zod / R2 jika request disekat server
         alert(`❌ Gagal Cipta Item: ${data.message || data.error || "Ralat pelayan"}`);
         return;
       }
 
-      // Jika berjaya, segarkan grid R2
       await muatSenaraiFailDaripadaR2(namaPengguna);
     } catch (e) {
       alert(`❌ Ralat Sistem Fail: ${e.message}`);
@@ -327,6 +325,7 @@ export default function Home() {
     }
   }
 
+  // ➔ ✅ SURGICAL UPDATE: Fungsi penyimpan kod hidup berkapasiti pengesan ralat jitu
   async function handleSimpanKeR2(e) {
     e.preventDefault();
     setLoading(true);
@@ -345,7 +344,8 @@ export default function Home() {
         setLamanBerjaya(namaPengguna.toLowerCase());
         await muatSenaraiFailDaripadaR2(namaPengguna);
       } else {
-        setStatusR2(`❌ Gagal: ${keputusan.message}`);
+        // ➔ ✅ PEMBAIKAN JITU: Gabungkan message dan error supaya punca sekatan keselamatan dipapar terus ke UI
+        setStatusR2(`❌ Gagal: ${keputusan.message || keputusan.error || "Ralat tidak diketahui"}`);
       }
     } catch (error) {
       setStatusR2(`❌ Ralat Sistem: ${error.message}`);
