@@ -52,18 +52,13 @@ const muatNaikTeratakSchema = z.object({
 }, {
   message: "❌ Jenis fail disekat! Sila gunakan jenis fail statik siber yang sah sahaja.",
   path: ["pathFailBaru"]
-}).refine((data) => {
-  const laluanMesej = data.pathFailBaru || "index.html";
-  const ekstensi = laluanMesej.split('.').pop().toLowerCase();
-  if (ekstensi === 'html' || ekstensi === 'htm') {
-    const corakBahaya = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|javascript:|onerror=|onload=/gi;
-    return !corakBahaya.test(data.kodHtml);
-  }
-  return true;
-}, {
-  message: "🛑 Amaran Keselamatan! Sistem mengesan ada suntikan skrip logik larangan (<script> / inline event) di dalam fail HTML anda.",
-  path: ["kodHtml"]
 });
+// =====================================================================
+// ➔ Mula: Pembuangan Benteng Sekatan XSS Lama (Kelonggaran Kreativiti Warga)
+// Penapis anti-script lama telah dibuang dari bahagian schema ini demi 
+// membolehkan komuniti menulis JavaScript murni di dalam sandboxed iframe.
+// ➔ Tamat: Pembuangan Benteng Sekatan XSS Lama
+// =====================================================================
 
 async function tukarStreamKeTeks(stream) {
   const chunks = [];
@@ -80,14 +75,12 @@ export async function GET(request) {
     const pathSpesifik = searchParams.get("path") || "index.html";
 
     const semakInput = dapatkanWargaSchema.safeParse({ username });
-    // Mula: Pembaikan pepijat .errors kepada .issues
     if (!semakInput.success) {
       return NextResponse.json(
         { success: false, message: semakInput.error.issues[0]?.message || "Ralat input dikesan." }, 
         { status: 400 }
       );
     }
-    // Tamat: Pembaikan pepijat .errors kepada .issues
 
     const namaFail = `${username.toLowerCase()}/${pathSpesifik.replace(/^\/+/, '')}`;
     const arahanAmbil = new GetObjectCommand({
@@ -115,14 +108,12 @@ export async function POST(request) {
     const dataBadan = await request.json();
     const semakData = muatNaikTeratakSchema.safeParse(dataBadan);
     
-    // Mula: Pembaikan pepijat .errors kepada .issues
     if (!semakData.success) {
       return NextResponse.json(
         { success: false, message: semakData.error.issues[0]?.message || "Ralat pengesahan fail." }, 
         { status: 400 }
       );
     }
-    // Tamat: Pembaikan pepijat .errors kepada .issues
 
     const { namaPengguna, kodHtml, pathFailBaru } = semakData.data;
     const subLaluanFail = pathFailBaru ? pathFailBaru.replace(/^\/+/, '') : "index.html";
