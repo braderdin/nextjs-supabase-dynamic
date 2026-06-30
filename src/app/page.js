@@ -41,15 +41,10 @@ export default function Home() {
   const [isEditorTerbuka, setIsEditorTerbuka] = useState(false);
   const [isWhitelistTerbuka, setIsWhitelistTerbuka] = useState(false);
 
-  // =====================================================================
-  // Mula: STATE KOTAK SEMBANG DATARAN (SHOUTBOX)
-  // =====================================================================
   const [senaraiShout, setSenaraiShout] = useState([]);
   const [shoutNama, setShoutNama] = useState("");
   const [shoutMesej, setShoutMesej] = useState("");
   const [loadingShout, setLoadingShout] = useState(false);
-  // =====================================================================
-  // Tamat: STATE KOTAK SEMBANG DATARAN (SHOUTBOX)
 
   async function muatSenaraiFailDaripadaR2(usernameAkaun) {
     setLoadingFailR2(true);
@@ -67,7 +62,7 @@ export default function Home() {
   async function handlePilihFailDariGrid(fail) {
     if (fail.jenis === 'folder') return;
     setFailAktif({ name: fail.nama, path: fail.laluanFull });
-    setLoading(true);
+    loading = true;
     setStatusR2(`Membuka dekripsi data fail [${fail.laluanFull}]... 📥`);
     setLamanBerjaya("");
     try {
@@ -180,9 +175,6 @@ export default function Home() {
     if (!error) await ambilJiranIntim(user.id);
   }
 
-  // =====================================================================
-  // Mula: FUNGSI LOGIK CIPTA & SUBKRIB SHOUTBOX REAL-TIME
-  // =====================================================================
   async function ambilDataShoutbox() {
     const { data, error } = await supabase.from('shoutbox').select('*').order('created_at', { ascending: false }).limit(20);
     if (!error && data) setSenaraiShout(data);
@@ -196,15 +188,9 @@ export default function Home() {
       nama: shoutNama.replace(/[^a-zA-Z0-9]/g, ""),
       mesej: shoutMesej
     });
-    if (!error) {
-      setShoutMesej("");
-    } else {
-      alert("❌ Gagal menjerit di dataran.");
-    }
+    if (!error) { setShoutMesej(""); } else { alert("❌ Gagal menjerit di dataran."); }
     setLoadingShout(false);
   }
-  // =====================================================================
-  // Tamat: FUNGSI LOGIK CIPTA & SUBKRIB SHOUTBOX REAL-TIME
 
   async function semakProfilWarga(currentUser) {
     if (!currentUser) return;
@@ -217,13 +203,15 @@ export default function Home() {
       await muatSenaraiFailDaripadaR2(data.username); 
       try {
         const amarahRespon = await fetch(`/api/upload?username=${data.username}&path=index.html`);
-        const dataKod = await amaranRespon.json();
+        // Mula: PEMBAIKAN JITU - Menukar amaranRespon kepada amarahRespon untuk elak crash
+        const dataKod = await amarahRespon.json(); 
+        // Tamat: PEMBAIKAN JITU - Menukar amaranRespon kepada amarahRespon untuk elak crash
         if (dataKod.success && dataKod.kodHtml) setKodHtml(dataKod.kodHtml);
       } catch (err) { console.error(err); }
     } else { setHasProfil(false); }
   }
 
-  async function ambilWargaR2() {
+  async function ambilWargaLive() {
     try {
       const respon = await fetch("/api/warga");
       const hasil = await respon.json();
@@ -248,10 +236,9 @@ export default function Home() {
     });
 
     ambilDataSupabase();
-    ambilWargaR2();
+    ambilWargaLive();
     ambilDataShoutbox();
 
-    // Jalankan frekuensi subskripsi talian real-time Shoutbox
     const saluranShout = supabase
       .channel('dataran_shoutbox_live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shoutbox' }, (payload) => {
@@ -279,7 +266,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ namaPengguna: usernameInput, kodHtml, pathFailBaru: "index.html" }),
         });
-        await ambilWargaR2(); await muatSenaraiFailDaripadaR2(usernameInput);
+        await ambilWargaLive(); await muatSenaraiFailDaripadaR2(usernameInput);
       }
     } catch (err) { setErrorProfil("Ralat Sistem: Gagal menuntut nama."); }
     finally { setLoadingProfil(false); }
@@ -477,9 +464,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* ===================================================================== */}
-        {/* Mula: 💬 SEGMEN TAMBAHAN FASA 3 - KOTAK SEMBANG DATARAN (SHOUTBOX)     */}
-        {/* ===================================================================== */}
         <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] font-mono text-xs mt-4">
           <div className="bg-slate-800 px-4 py-2 flex items-center justify-between border-b-2 border-slate-800 text-slate-200 select-none">
             <span>🗣️ dataran_shoutbox_global.sys</span>
@@ -487,7 +471,6 @@ export default function Home() {
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            {/* Borang Jeritan Warga */}
             <form onSubmit={handleHantarShout} className="space-y-3 bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
               <span className="text-[10px] text-blue-400 font-bold block uppercase tracking-wider">📢 LAUNGKAN MESEJ ANDA</span>
               <div className="space-y-2 flex-1 pt-1">
@@ -519,7 +502,6 @@ export default function Home() {
               </button>
             </form>
 
-            {/* Kotak Paparan Skrin Terminal Sembang */}
             <div className="md:col-span-2 bg-black border-2 border-slate-850 p-3 h-[210px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 space-y-2 text-[11px]">
               {senaraiShout.length === 0 ? (
                 <div className="text-center text-slate-700 py-16">[ Dataran sunyi murni... Jadilah warga pertama yang menegur! ]</div>
@@ -538,8 +520,6 @@ export default function Home() {
 
           </div>
         </div>
-        {/* ===================================================================== */}
-        {/* Tamat: Nombor 3 - Kotak Sembang Dataran (Shoutbox) */}
 
       </div>
 

@@ -31,33 +31,33 @@ export default async function LamanWargaSiber({ params }) {
   let senaraiJiranIntim = [];
   let profilWujud = false;
   
-  // Mula: SUNTIKAN VARIABLE DATA FASA 3
+  // Mula: Inisialisasi Pemboleh Ubah Fasa 3 Webring & Mood
   let dataMood = { ikon: "☕", teks: "Bertukang Kod Malam-Malam" };
   let senaraiLencana = [];
   let urlJiranKiri = "/";
   let urlJiranKanan = "/";
   let urlJiranRawak = "/";
-  // Tamat: SUNTIKAN STATE DATA FASA 3
+  // Tamat: Inisialisasi Pemboleh Ubah Fasa 3 Webring & Mood
 
   try {
     const { data: profil } = await supabase
       .from('warga_profil')
-      .select('id, mood_ikon, mood_teks, lencana_koleksi')
+      .select('id, mood_ikon, mood_text, lencana_koleksi')
       .eq('username', namaPengguna.toLowerCase())
       .maybeSingle();
 
     if (profil) {
       profilWujud = true; 
       
-      // Mengambil Status Emosi Warga (Mood) Sekiranya Wujud
-      if (profil.mood_teks) {
-        dataMood = { teks: profil.mood_teks, ikon: profil.mood_ikon || "☕" };
+      // Mula: PEMBAIKAN JITU - Pembetulan ejaan & penetapan data mood
+      if (profil.mood_text) {
+        dataMood = { teks: profil.mood_text, ikon: profil.mood_ikon || "☕" };
       }
 
-      // Mengambil Lencana Kebanggaan Warga
       if (Array.isArray(profil.lencana_koleksi)) {
-        lencanaWarga = profil.lencana_komen;
+        senaraiLencana = profil.lencana_koleksi;
       }
+      // Tamat: PEMBAIKAN JITU - Pembetulan ejaan & penetapan data mood
 
       const { data: jiranData } = await supabase
         .from('jiran_intim')
@@ -70,47 +70,61 @@ export default async function LamanWargaSiber({ params }) {
       }
 
       // =====================================================================
-      // Mula: ALGORITMA WEBRING KAMPUNG (Mencari Jiran Kiri, Kanan, & Rawak)
+      // Mula: PEMBAIKAN JITU - Algoritma Webring Rangkaian Kampung Siber
       // =====================================================================
       const { data: seluruhWarga } = await supabase
         .from('warga_profil')
         .select('username')
         .order('username', { ascending: true });
 
-      if (selatWarga && seluruhWarga.length > 1) {
+      if (seluruhWarga && seluruhWarga.length > 1) {
         const indeksSemasa = seluruhWarga.findIndex(w => w.username.toLowerCase() === namaPengguna.toLowerCase());
         
-        const indeksKiri = indeksSemasa === 0 ? seluruhWarga.length - 1 : indeksSemasa - 1;
-        const indeksKanan = indeks === seluruhWarga.length - 1 ? 0 : indeks + 1;
-        
-        let indeksRawak = Math.floor(Math.random() * seluruhWarga.length);
-        while(indeksRawak === indeks && seluruhWarga.length > 1) {
-          indeksRawak = Math.floor(Math.random() * seluruhAktiviti.length);
-        }
+        if (indeksSemasa !== -1) {
+          const indeksKiri = indeksSemasa === 0 ? seluruhWarga.length - 1 : indeksSemasa - 1;
+          const indeksKanan = indeksSemasa === seluruhWarga.length - 1 ? 0 : indeksSemasa + 1;
+          
+          let indeksRawak = Math.floor(Math.random() * seluruhWarga.length);
+          while (indeksRawak === indeksSemasa && seluruhWarga.length > 1) {
+            indeksRawak = Math.floor(Math.random() * seluruhWarga.length);
+          }
 
-        jiranKiri = `/laman/${seluruhWarga[indeksKiri].username}`;
-        jiranKanan = `/laman/${selaranKanan.username}`;
-        teratakRawak = `/laman/${selaraiWarga[indeksRawak].username}`;
+          urlJiranKiri = `/laman/${seluruhWarga[indeksKiri].username}`;
+          urlJiranKanan = `/laman/${seluruhWarga[indeksKanan].username}`;
+          urlJiranRawak = `/laman/${seluruhWarga[indeksRawak].username}`;
+        }
       }
       // =====================================================================
-      // Tamat: Webring Kampung (Rangkaian Teratak)
+      // Tamat: PEMBAIKAN JITU - Algoritma Webring Rangkaian Kampung Siber
     }
 
-    if (!profilWujud) { throw new Error("Profil siber ghaib abangku!"); }
+    if (!profilWujud) {
+      throw new Error("Profil siber ghaib abangku!");
+    }
 
     let kodHtmlAsli = "";
     try {
-      const arahanAmbil = new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: namaFailFull });
+      const arahanAmbil = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: namaFailFull,
+      });
       const responR2 = await r2Client.send(arahanAmbil);
       const chunks = [];
-      for await (const chunk of responR2.Body) { chunks.push(chunk); }
+      for await (const chunk of responR2.Body) {
+        chunks.push(chunk);
+      }
       kodHtmlAsli = Buffer.concat(chunks).toString("utf8");
     } catch (errR2) {
       const folderKeyFallback = `${namaFailFull.replace(/\/$/, '')}/index.html`;
-      const arahanFolder = new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: folderKeyFallback });
+      const arahanFolder = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: folderKeyFallback,
+      });
       const responFolder = await r2Client.send(arahanFolder);
       const chunks = [];
-      for await (const chunk of responFolder.Body) { chunks.push(chunk); }
+      for await (const chunk of responFolder.Body) {
+        chunks.push(chunk);
+      }
       kodHtmlAsli = Buffer.concat(chunks).toString("utf8");
     }
 
@@ -132,6 +146,7 @@ export default async function LamanWargaSiber({ params }) {
       </script>
     `;
     const kodHtmlDenganSkrip = kodHtmlAsli + skripResizerMurni;
+
     const adakahLamanUtama = subPathFail === 'index.html' || subPathFail === '';
 
     return (
@@ -141,20 +156,22 @@ export default async function LamanWargaSiber({ params }) {
           window.addEventListener('message', function(acara) {
             if (acara.data && acara.data.type === 'KAMPUNG_SIBER_RESIZE') {
               var teratakIframe = document.getElementById('teratak-iframe');
-              if (teratakIframe) { teratakIframe.style.height = acara.data.height + 'px'; }
+              if (teratakIframe) {
+                teratakIframe.style.height = acara.data.height + 'px';
+              }
             }
           });
         `}} />
 
-        {/* Mula: Widget Status Emosi (Mood) Berkelip Di Atas Profil Warga */}
+        {/* Mula: Paparan Widget Status Emosi (Mood) Berkelip Dinamik */}
         {adakahLamanUtama && (
-          <div className="w-full bg-slate-900 border-b border-slate-800 py-2 text-center font-mono text-xs text-yellow-400">
+          <div className="w-full bg-slate-900 border-b border-slate-800 py-2 text-center font-mono text-xs text-yellow-400 select-none">
             <span className="animate-pulse bg-yellow-500/10 px-3 py-1 border border-yellow-500/30">
-              ☕ STATUS EMOSI TERATAK: <span className="text-white font-bold uppercase">Sedang Bertukang Kod Malam-Malam ☕</span>
+              {dataMood.ikon} STATUS EMOSI TERATAK: <span className="text-white font-bold uppercase">{dataMood.teks} {dataMood.ikon}</span>
             </span>
           </div>
         )}
-        {/* Tamat: Widget Status Emosi (Mood) Berkelip */}
+        {/* Tamat: Paparan Widget Status Emosi (Mood) Berkelip Dinamik */}
 
         <div className="w-full bg-slate-950">
           <iframe 
@@ -169,8 +186,8 @@ export default async function LamanWargaSiber({ params }) {
         
         {adakahLamanUtama && (
           <>
-            {/* Mula: Fasa 3 - Pasar Karat Lencana (Badge Exchange) */}
-            <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs">
+            {/* Mula: Paparan Pasar Karat Lencana (Badge Collect Component) */}
+            <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs select-none">
               <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] p-4">
                 <h3 className="text-yellow-400 font-bold mb-3 uppercase tracking-wider text-[11px]">🛡️ Pasar Karat Lencana (88x31 Friend Badges)</h3>
                 <div className="flex flex-wrap gap-2 bg-slate-950 p-3 border border-slate-850 justify-center">
@@ -179,14 +196,14 @@ export default async function LamanWargaSiber({ params }) {
                 </div>
               </div>
             </div>
-            {/* Tamat: Fasa 3 - Pasar Karat Lencana */}
+            {/* Tamat: Paparan Pasar Karat Lencana (Badge Collect Component) */}
 
-            <div className="max-w-xl w-full mx-auto px-4 mt-4">
+            <div className="max-w-xl w-full mx-auto px-4 mt-8">
               <WidgetJiranIntim senaraiJiran={senaraiJiranIntim} />
             </div>
 
-            {/* Mula: Nombor 2 - Webring Kampung (Rangkaian Teratak Klasik) */}
-            <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs">
+            {/* Mula: Paparan Bar Butang Webring Kampung Rangkaian Teratak */}
+            <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs select-none">
               <div className="bg-slate-900 border-2 border-slate-800 p-3 shadow-[4px_4px_0px_0px_#ec4899] text-center space-y-2">
                 <span className="text-[10px] text-slate-400 block uppercase tracking-widest">🕸️ RANGKAIAN WEBRING KAMPUNG SIBER 🕸️</span>
                 <div className="flex justify-center gap-2 pt-1">
@@ -196,7 +213,7 @@ export default async function LamanWargaSiber({ params }) {
                 </div>
               </div>
             </div>
-            {/* Tamat: Nombor 2 - Webring Kampung (Rangkaian Teratak Klasik) */}
+            {/* Tamat: Paparan Bar Butang Webring Kampung Rangkaian Teratak */}
 
             <KomponenKomenDanKaunter namaPengguna={namaPengguna} />
           </>
@@ -204,12 +221,17 @@ export default async function LamanWargaSiber({ params }) {
       </div>
     );
   } catch (error) {
+    console.error("Ralat dikesan pada LamanWargaSiber:", error);
     return (
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
         <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
           <p className="text-red-400 font-bold text-sm mb-2">⚠️ FAIL / TERATAK TIDAK DIJUMPAI</p>
-          <p className="mb-4 leading-relaxed">Maaf abangku, fail "{subPathFail}" tiada dalam arkib.</p>
-          <Link href="/" className="inline-block bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-300 hover:text-pink-400 px-4 py-2 font-bold text-[11px]">BALIK KE TERAJU UTAMA</Link>
+          <p className="mb-4 leading-relaxed">
+            Maaf abangku, fail <span className="text-pink-400 font-bold">"{subPathFail}"</span> tiada dalam arkib teratak <span className="text-yellow-400 font-bold">@{namaPengguna}</span>.
+          </p>
+          <Link href="/" className="inline-block bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-300 hover:text-pink-400 px-4 py-2 font-bold transition-all text-[11px]">
+            BALIK KE TERAJU UTAMA
+          </Link>
         </div>
       </div>
     );
