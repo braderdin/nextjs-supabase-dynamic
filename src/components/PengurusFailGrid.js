@@ -11,7 +11,7 @@ export default function PengurusFailGrid({
   namaPengguna,
   onCommitProject,
   loadingCommit = false,
-  // ➔ 📋 PROP BARU: Fungsi untuk membuka paparan dokumentasi jenis fail
+  // Prop kekal dikekalkan di sini untuk mengelakkan ralat berantai pada komponen induk
   onShowWhitelist
 }) {
   const [modPaparan, setModPaparan] = useState("grid");
@@ -26,7 +26,7 @@ export default function PengurusFailGrid({
 
   function sahkanKeselamatanFail(nama) {
     const pecahan = nama.split('.');
-    if (pecapan.length < 2) return false; 
+    if (pecahan.length < 2) return false; 
     const ekstensi = pecahan.pop().toLowerCase();
     return EKSTENSI_DIBENARKAN.includes(ekstensi);
   }
@@ -99,14 +99,9 @@ export default function PengurusFailGrid({
               📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
             </div>
             
-            {/* ➔ 📋 SUNTIKAN BARU: Butang Dokumen Jenis Fail Sah (Anak Panah Merah) */}
-            <button
-              type="button"
-              onClick={onShowWhitelist}
-              className="bg-slate-950 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-2 py-1 font-bold text-[10px] uppercase transition-all tracking-tight"
-            >
-              📋 JENIS_FAIL.TXT
-            </button>
+            {/* Mula: Pemindahan Butang JENIS_FAIL.TXT ke Menu Utama Navigasi */}
+            {/* Butang JENIS_FAIL.TXT telah dibuang dari sini dan dipindahkan ke MenuNavigasiSiber.js dengan nama '📋 Format Fail Sah' */}
+            {/* Tamat: Pemindahan Butang JENIS_FAIL.TXT ke Menu Utama Navigasi */}
           </div>
           
           <div className="flex gap-2">

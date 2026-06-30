@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 export default function MenuNavigasiSiber() {
   const pathname = usePathname();
 
-  // ➔ SUNTIKAN KUNCI BARU: Ditambah laluan ke Pondok Siber & Surat Layang
+  // Mula: Tambahan Laluan Menu Format Fail Sah
   const senaraiMenu = [
     { nama: "🏠 Teraju Utama", pautan: "/" },
     { nama: "🌐 Jelajah Kampung", pautan: "/jelajah" },
@@ -12,7 +12,9 @@ export default function MenuNavigasiSiber() {
     { nama: "🎨 Kitab Grafik", pautan: "/kitab_grafik" },
     { nama: "⛺ Pondok Siber", pautan: "/pondok" },      // Pintu masuk BBS Forum
     { nama: "📨 Surat Layang", pautan: "/surat-layang" }, // Pintu masuk Realtime DM
+    { nama: "📋 Format Fail Sah", pautan: "/DOKUMENTASI_FORMAT_FAIL_SAH" }, // Pautan dinamik ke halaman dokumentasi format fail sah
   ];
+  // Tamat: Tambahan Laluan Menu Format Fail Sah
 
   return (
     <nav className="w-full bg-slate-900 border-2 border-slate-800 p-2 shadow-[4px_4px_0px_0px_#ec4899]">
