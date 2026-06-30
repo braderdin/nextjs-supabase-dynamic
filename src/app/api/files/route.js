@@ -1,6 +1,8 @@
 import { S3Client, ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js"; // ➔ TAMBAHAN: Import Supabase Client
 
+// Mula: Inisialisasi Hubungan R2 (Menggunakan kunci .env.local asal abang)
 const r2Client = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -9,6 +11,13 @@ const r2Client = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 });
+// Tamat: Inisialisasi Hubungan R2
+
+// Mula: Inisialisasi Hubungan Supabase Pelayan
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Tamat: Inisialisasi Hubungan Supabase Pelayan
 
 // 📥 GET: Membaca seluruh isi kandungan objek R2 milik username dan menukarnya ke format VFS Grid
 export async function GET(request) {
@@ -97,6 +106,21 @@ export async function DELETE(request) {
         Key: targetKunci,
       }));
     }
+
+    // =====================================================================
+    // Mula: SURGICAL INJECTION - Kirim Denyutan Pemadaman Fail ke Supabase
+    // =====================================================================
+    try {
+      await supabase.from("aktiviti_warga").insert({
+        username: username.toLowerCase(),
+        aksi: "memadam dan membuang item fail kekal",
+        nama_fail: pathFail
+      });
+    } catch (errDelLog) {
+      console.error("Gagal merekod suapan log pemadaman:", errDelLog);
+    }
+    // =====================================================================
+    // Tamat: SURGICAL INJECTION - Kirim Denyutan Pemadaman Fail ke Supabase
 
     return NextResponse.json({ success: true, message: "Item berjaya dipadam secara kekal dari R2!" });
   } catch (error) {

@@ -1,70 +1,106 @@
 "use client";
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import MarqueePengumuman from '@/components/MarqueePengumuman';
-
-// Mula: Data Simulasi Aktiviti Warga Kampung Siber (Boleh Dihubungkan ke Table Supabase Nanti)
-const DATA_AKTIVITI_MOCK = [
-  { id: 1, warga: "abangdin", aksi: "mengemaskini fail", fail: "index.html", masa: "5 minit lepas", likes: 12, komen: [{ pengirim: "gengcoding", teks: "Mantap teratak baru bang!" }] },
-  { id: 2, warga: "alif_cyber99", aksi: "menambah grafik animasi baru dari Kitab Grafik", fail: "hiasan.gif", masa: "20 minit lepas", likes: 8, komen: [] },
-  { id: 3, warga: "rock_kapak00", aksi: "menyuntik kod muzik latar belakang YouTube", fail: "portfolio.html", masa: "1 jam lepas", likes: 19, komen: [{ pengirim: "sibergirl", teks: "Lagu imbau kenangan lama betul ni baii." }] },
-  { id: 4, warga: "matcoding", aksi: "membuka pondok perbincangan siber baharu", fail: "#CSSComel", masa: "2 jam lepas", likes: 5, komen: [] },
-  { id: 5, warga: "sibergirl", aksi: "mendaftar nama teratak unik rasmi", fail: "index.html", masa: "5 jam lepas", likes: 15, komen: [] },
-  { id: 6, warga: "timbalansiber", aksi: "mengunci kedudukan slot jiran intim baru", fail: "top8_slot.sys", masa: "1 hari lepas", likes: 7, komen: [] },
-];
-// Tamat: Data Simulasi Aktiviti Warga Kampung Siber
 
 function KandunganUtamaAktiviti() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const halamanSemasa = Number(searchParams.get('page')) || 1;
   
-  // State Pengurusan UI
+  // Mula: State Pengurusan UI & Data Live Database
   const [kataKunci, setKataKunci] = useState("");
-  const [senaraiAktiviti, setSenaraiAktiviti] = useState(DATA_AKTIVITI_MOCK);
+  const [senaraiAktiviti, setSenaraiAktiviti] = useState([]);
+  const [totalAktiviti, setTotalAktiviti] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [inputKomen, setInputKomen] = useState({});
+  // Tamat: State Pengurusan UI & Data Live Database
 
-  // Fungsi Mengendalikan Carian Aktiviti
-  const aktivitiDitapis = senaraiAktiviti.filter(item => 
-    item.warga.toLowerCase().includes(kataKunci.toLowerCase()) ||
-    item.aksi.toLowerCase().includes(kataKunci.toLowerCase()) ||
-    item.fail.toLowerCase().includes(kataKunci.toLowerCase())
-  );
+  // Mula: Fungsi memuat turun data log secara live dari pangkalan data Supabase
+  async function muatAktivitiLive() {
+    setLoading(true);
+    try {
+      const respon = await fetch(`/api/activity?page=${halamanSemasa}&search=${encodeURIComponent(kataKunci)}`);
+      const hasil = await respon.json();
+      if (hasil.success) {
+        setSenaraiAktiviti(hasil.data || []);
+        setTotalAktiviti(hasil.total || 0);
+      }
+    } catch (err) {
+      console.error("Gagal menyaring frekuensi isyarat aktiviti.", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+  // Tamat: Fungsi memuat turun data log secara live dari pangkalan data Supabase
 
-  // Fungsi Menambah Angka Like Kosmetik
-  const handleTekanLike = (id) => {
-    setSenaraiAktiviti(prev => prev.map(item => 
-      item.id === id ? { ...item, likes: item.likes + 1 } : item
-    ));
+  // Cetus pemanggilan semula data apabila berlaku perubahan muka surat
+  useEffect(() => {
+    muatAktivitiLive();
+  }, [halamanSemasa]);
+
+  // Fungsi Mengendalikan Carian Aktiviti Hantar Form
+  const handleCarianAktiviti = (e) => {
+    e.preventDefault();
+    router.push(`/activity?page=1`);
+    muatAktivitiLive();
   };
 
-  // Fungsi Menghantar Komen Baru pada Aktiviti
-  const handleHantarKomen = (e, id) => {
+  // Mula: Fungsi memproses isyarat Like ke Supabase
+  const handleTekanLike = async (id) => {
+    try {
+      const respon = await fetch("/api/activity", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, tipe: "like" })
+      });
+      const hasil = await respon.json();
+      if (hasil.success) {
+        setSenaraiAktiviti(prev => prev.map(item => 
+          item.id === id ? { ...item, likes: (item.likes || 0) + 1 } : item
+        ));
+      }
+    } catch (e) {
+      alert("⚠️ Gagal menghantar isyarat suka abangku.");
+    }
+  };
+  // Tamat: Fungsi memproses isyarat Like ke Supabase
+
+  // Mula: Fungsi memproses hantaran ulasan baharu secara real-time
+  const handleHantarKomen = async (e, id) => {
     e.preventDefault();
     const teks = inputKomen[id]?.trim();
     if (!teks) return;
 
-    setSenaraiAktiviti(prev => prev.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          komen: [...item.komen, { pengirim: "WargaSiber", teks: teks }]
-        };
+    try {
+      const respon = await fetch("/api/activity", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, tipe: "comment", pengirim: "WargaSiber", teks })
+      });
+      const hasil = await respon.json();
+      if (hasil.success) {
+        setSenaraiAktiviti(prev => prev.map(item => 
+          item.id === id ? { ...item, komen: hasil.komen } : item
+        ));
+        setInputKomen(prev => ({ ...prev, [id]: "" }));
       }
-      return item;
-    }));
-
-    setInputKomen(prev => ({ ...prev, [id]: "" }));
+    } catch (err) {
+      alert("⚠️ Gagal mengunci ulasan digital.");
+    }
   };
+  // Tamat: Fungsi memproses hantaran ulasan baharu secara real-time
+
+  const jumlahHalaman = Math.ceil(totalAktiviti / 5) || 1;
 
   return (
     <div className="max-w-5xl w-full mx-auto px-4 py-6 md:py-8 flex-1 flex flex-col gap-6 md:gap-8">
       
       {/* Mula: Nombor 1 - Barisan Butang Navigasi Kecil Kanan Atas Pages */}
       <div className="flex justify-between items-center font-mono">
-        <span className="text-[10px] text-slate-500 hidden sm:inline">[ LOKASI: PATH://ACTIVITY.LOG ]</span>
+        <span className="text-[10px] text-emerald-400 font-bold hidden sm:inline">[ STATUS: LIVE_DATABASE_FEED ]</span>
         <div className="flex gap-2 ml-auto">
           <Link href="/" className="bg-slate-900 border border-slate-700 hover:border-pink-500 text-slate-300 text-[11px] px-3 py-1.5 font-bold uppercase transition-colors">
             [ Teraju Utama ]
@@ -86,55 +122,64 @@ function KandunganUtamaAktiviti() {
         </p>
 
         {/* Kotak Input Carian Retro */}
-        <div className="mt-4 flex gap-2 items-center bg-slate-950 border border-slate-800 p-2">
+        <form onSubmit={handleCarianAktiviti} className="mt-4 flex gap-2 items-center bg-slate-950 border border-slate-800 p-2">
           <span className="text-yellow-500 text-xs pl-1 font-bold">TAPIS_AKSI:</span>
           <input 
             type="text"
-            placeholder="Cari nama warga atau jenis aktiviti (cth: abangdin, muzik)..."
+            placeholder="Taip perkataan & tekan ENTER atau butang tapis (cth: abangdin, index.html)..."
             value={kataKunci}
             onChange={(e) => setKataKunci(e.target.value)}
             className="flex-1 bg-transparent text-xs text-pink-400 placeholder-slate-700 focus:outline-none font-mono"
           />
-        </div>
+          <button type="submit" className="text-[10px] bg-slate-900 border border-slate-700 px-3 py-0.5 text-slate-400 hover:text-white uppercase font-bold transition-all active:scale-95">
+            Tapis
+          </button>
+        </form>
       </div>
       {/* Tamat: Nombor 2 - Tajuk Bahasa Melayu & Kolum Carian Tag Input */}
 
       {/* Mula: Nombor 3 - Senarai Aktiviti, Post Komen, dan Butang Like */}
       <div className="space-y-4 font-mono">
-        {aktivitiDitapis.length === 0 ? (
+        {loading ? (
+          <div className="text-center text-xs py-12 border-2 border-dashed border-slate-850 bg-slate-900 text-slate-500 animate-pulse">
+            🔄 Sedang memancar dan menyaring log data Supabase...
+          </div>
+        ) : senaraiAktiviti.length === 0 ? (
           <div className="text-center text-xs py-12 border-2 border-dashed border-slate-850 bg-slate-900 text-slate-600">
-            [ Tiada rekod denyutan aktiviti ditemui bagi kata kunci tersebut ]
+            [ Tiada rekod denyutan aktiviti ditemui dalam arkib kampung ]
           </div>
         ) : (
-          aktivitiDitapis.map((item) => (
+          senaraiAktiviti.map((item) => (
             <div key={item.id} className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_rgba(59,130,246,0.2)] space-y-3">
               
               {/* Kepala Suapan Aktiviti */}
               <div className="flex justify-between items-start border-b border-slate-950 pb-2">
                 <div className="text-xs text-slate-300">
-                  <Link href={`/laman/${item.warga}`} className="text-pink-400 font-bold hover:underline">@{item.warga}</Link>
+                  <Link href={`/laman/${item.username}`} className="text-pink-400 font-bold hover:underline">@{item.username}</Link>
                   <span className="text-slate-500"> sedang {item.aksi} </span>
-                  <span className="text-yellow-400 font-bold">{item.fail}</span>
+                  <span className="text-yellow-400 font-bold">{item.nama_fail}</span>
                 </div>
-                <span className="text-[10px] text-slate-600 whitespace-nowrap">{item.masa}</span>
+                <span className="text-[10px] text-slate-600 whitespace-nowrap">
+                  {new Date(item.created_at).toLocaleDateString('ms-MY')} {new Date(item.created_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
 
               {/* Seksyen Interaksi Button Like */}
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => handleTekanLike(item.id)}
-                  className="bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-400 hover:text-pink-400 text-[10px] px-2 py-1 flex items-center gap-1.5 transition-all"
+                  className="bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-400 hover:text-pink-400 text-[10px] px-2 py-1 flex items-center gap-1.5 transition-all shadow-[1px_1px_0px_0px_rgba(0,0,0,0.5)] active:scale-95"
                 >
-                  ❤️ Suka ({item.likes})
+                  ❤️ Suka ({item.likes || 0})
                 </button>
-                <span className="text-[10px] text-slate-600">{item.komen.length} ulasan digital</span>
+                <span className="text-[10px] text-slate-600">{(item.komen || []).length} ulasan digital</span>
               </div>
 
               {/* Sub-Senarai Komen yang Ditinggalkan */}
-              {item.komen.length > 0 && (
-                <div className="bg-slate-950 p-2.5 border border-slate-850 space-y-2 text-[11px]">
+              {(item.komen || []).length > 0 && (
+                <div className="bg-slate-950 p-2.5 border border-slate-850 space-y-2 text-[11px] max-h-[180px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
                   {item.komen.map((kom, i) => (
-                    <div key={i} className="leading-relaxed">
+                    <div key={i} className="leading-relaxed border-b border-slate-900 pb-1 last:border-0 last:pb-0">
                       <span className="text-blue-400 font-bold">@{kom.pengirim}:</span>
                       <span className="text-slate-400"> {kom.teks}</span>
                     </div>
@@ -150,7 +195,7 @@ function KandunganUtamaAktiviti() {
                   value={inputKomen[item.id] || ""}
                   onChange={(e) => setInputKomen(prev => ({ ...prev, [item.id]: e.target.value }))}
                   required
-                  className="flex-1 bg-slate-950 border border-slate-850 text-[11px] p-2 text-slate-300 placeholder-slate-700 focus:outline-none focus:border-slate-700"
+                  className="flex-1 bg-slate-950 border border-slate-850 text-[11px] p-2 text-slate-300 placeholder-slate-700 focus:outline-none focus:border-slate-700 font-mono"
                 />
                 <button 
                   type="submit"
@@ -169,7 +214,7 @@ function KandunganUtamaAktiviti() {
       {/* Mula: Nombor 4 - Gaya Bernombor Navigasi Halaman (Pagination) */}
       <div className="flex justify-center items-center gap-2 font-mono text-xs pt-4 border-t-2 border-dashed border-slate-900">
         <span className="text-slate-600 uppercase font-black text-[10px] mr-2">Muka Surat:</span>
-        {[1, 2, 3, 4, 5].map((NoPage) => {
+        {Array.from({ length: jumlahHalaman }, (_, i) => i + 1).map((NoPage) => {
           const adakahAktif = halamanSemasa === NoPage;
           return (
             <button

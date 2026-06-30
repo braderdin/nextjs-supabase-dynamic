@@ -1,7 +1,9 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js"; // ➔ TAMBAHAN: Import Supabase Client
 
+// Mula: Inisialisasi Hubungan R2 (Menggunakan kunci .env.local asal abang)
 const r2Client = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -10,7 +12,15 @@ const r2Client = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 });
+// Tamat: Inisialisasi Hubungan R2
 
+// Mula: Inisialisasi Hubungan Supabase Pelayan
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Tamat: Inisialisasi Hubungan Supabase Pelayan
+
+// Mula: Kamus Pemetaan MIME untuk Menyokong Kandungan Murni Web
 const PEMETAAN_MIME = {
   'html': 'text/html',
   'htm': 'text/html',
@@ -28,6 +38,7 @@ const PEMETAAN_MIME = {
   'woff2': 'font/woff2',
   'keep': 'text/plain' 
 };
+// Tamat: Kamus Pemetaan MIME
 
 const dapatkanWargaSchema = z.object({
   username: z.string({ required_error: "Nama pengguna diperlukan abangku! ⚠️" })
@@ -53,6 +64,7 @@ const muatNaikTeratakSchema = z.object({
   message: "❌ Jenis fail disekat! Sila gunakan jenis fail statik siber yang sah sahaja.",
   path: ["pathFailBaru"]
 });
+
 // =====================================================================
 // ➔ Mula: Pembuangan Benteng Sekatan XSS Lama (Kelonggaran Kreativiti Warga)
 // Penapis anti-script lama telah dibuang dari bahagian schema ini demi 
@@ -129,6 +141,30 @@ export async function POST(request) {
     });
 
     await r2Client.send(arahanUpload);
+
+    // =====================================================================
+    // Mula: SURGICAL INJECTION - Kirim Denyutan Aktiviti ke Supabase
+    // =====================================================================
+    try {
+      const adakahFolder = kodHtml === "FOLDER_PLACEHOLDER";
+      let statusAksi = "menyunting fail retro statik";
+      
+      if (adakahFolder) {
+        statusAksi = "memacak direktori folder baharu";
+      } else if (subLaluanFail === "index.html") {
+        statusAksi = "mengemaskini reka bentuk wajah utama teratak";
+      }
+
+      await supabase.from("aktiviti_warga").insert({
+        username: namaPengguna.toLowerCase(),
+        aksi: statusAksi,
+        nama_fail: subLaluanFail
+      });
+    } catch (errLog) {
+      console.error("Gagal merekod suapan log aktiviti:", errLog);
+    }
+    // =====================================================================
+    // Tamat: SURGICAL INJECTION - Kirim Denyutan Aktiviti ke Supabase
 
     return NextResponse.json({
       success: true,

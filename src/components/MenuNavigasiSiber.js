@@ -21,9 +21,12 @@ export default function MenuNavigasiSiber() {
   return (
     <nav className="w-full bg-slate-900 border-2 border-slate-800 p-2 shadow-[4px_4px_0px_0px_#ec4899]">
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 font-mono text-xs">
+        
+        {/* Mula: Label Panduan Induk System CRT */}
         <div className="bg-slate-950 px-3 py-1.5 text-pink-400 font-bold border border-slate-800 text-center md:text-left select-none">
           🧭 MENU_UTAMA.SYS :
         </div>
+        {/* Tamat: Label Panduan Induk System CRT */}
         
         {/* Mula: Grid Pembahagi Navigasi Komuniti */}
         <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap flex-1 gap-2">
@@ -46,6 +49,7 @@ export default function MenuNavigasiSiber() {
           })}
         </div>
         {/* Tamat: Grid Pembahagi Navigasi Komuniti */}
+        
       </div>
     </nav>
   );
