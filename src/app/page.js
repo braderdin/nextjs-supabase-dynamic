@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 import MarqueePengumuman from '../components/MarqueePengumuman';
-import BorangStudioKreatif from '../components/BorangStudioKreatif';
 import ButangGoogleLogin from '../components/ButangGoogleLogin';
 import MenuNavigasiSiber from '../components/MenuNavigasiSiber';
 import TuntutNamaTeratak from '../components/TuntutNamaTeratak';
@@ -39,6 +38,9 @@ export default function Home() {
   const [senaraiJiranIntim, setSenaraiJiranIntim] = useState([]);
   const [inputSlot, setInputSlot] = useState({}); 
 
+  // ➔ SUNTIKAN STATE BARU: Mengawal pembukaan tirai editor skrin penuh
+  const [isEditorTerbuka, setIsEditorTerbuka] = useState(false);
+
   // Penarik fail live dari R2
   async function muatSenaraiFailDaripadaR2(usernameAkaun) {
     setLoadingFailR2(true);
@@ -69,6 +71,8 @@ export default function Home() {
       if (data.success) {
         setKodHtml(data.kodHtml);
         setStatusR2(`Fail [${fail.nama}] sedia disunting.`);
+        // ➔ ⚡ SUNTIKAN: Buka kanvas skrin penuh automatik apabila fail diklik
+        setIsEditorTerbuka(true);
       } else {
         setKodHtml(``);
         setStatusR2(`Fail kosong atau gagal dimuat.`);
@@ -138,6 +142,8 @@ export default function Home() {
 
   async function ambilPermintaanJiran(usernameAkaun) {
     try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
       const { data, error } = await supabase
         .from('ikatan_jiran')
         .select('id, status, pengirim_id, warga_profil(username)')
@@ -325,9 +331,9 @@ export default function Home() {
     }
   }
 
-  // ➔ ✅ SURGICAL UPDATE: Fungsi penyimpan kod hidup berkapasiti pengesan ralat jitu
+  // Fungsi penyimpan kod hidup berkapasiti pengesan ralat jitu
   async function handleSimpanKeR2(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     setStatusR2(`Sedang mengemaskini fail [${failAktif.path}] ke Cloudflare R2... 🚀`);
     setLamanBerjaya("");
@@ -344,7 +350,6 @@ export default function Home() {
         setLamanBerjaya(namaPengguna.toLowerCase());
         await muatSenaraiFailDaripadaR2(namaPengguna);
       } else {
-        // ➔ ✅ PEMBAIKAN JITU: Gabungkan message dan error supaya punca sekatan keselamatan dipapar terus ke UI
         setStatusR2(`❌ Gagal: ${keputusan.message || keputusan.error || "Ralat tidak diketahui"}`);
       }
     } catch (error) {
@@ -423,91 +428,152 @@ export default function Home() {
         {user && hasProfil && (
           <div className="space-y-6 animate-fadeIn">
             
-            <MenuNavigasiSiber />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              
-              <div className="lg:col-span-1">
-                <PengurusFailGrid 
-                  senaraiFail={senaraiFailR2}
-                  loadingFail={loadingFailR2}
-                  onFileSelect={handlePilihFailDariGrid}
-                  onCiptaItem={handleCiptaItemFizikal}
-                  onPadamItem={handlePadamItemFizikal}
-                  namaPengguna={namaPengguna}
-                />
-              </div>
-
-              <div className="lg:col-span-2">
-                <BorangStudioKreatif 
-                  namaPengguna={namaPengguna} 
-                  kodHtml={kodHtml} 
-                  setKodHtml={setKodHtml}
-                  handleSimpanKeR2={handleSimpanKeR2} 
-                  loading={loading} 
-                  statusR2={statusR2}
-                  lamanBerjaya={lamanBerjaya} 
-                  failAktif={failAktif}
-                />
-              </div>
-
-            </div>
-
-            <div className="space-y-4 pt-4 border-t-2 border-dashed border-slate-900">
-              
-              {permintaanJiran.length > 0 && (
-                <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#3b82f6] font-mono text-xs">
-                  <h3 className="text-blue-400 font-bold mb-3">📬 PERMOHONAN JIRAN MASUK ({permintaanJiran.length})</h3>
-                  <div className="space-y-2">
-                    {permintaanJiran.map(req => (
-                      <div key={req.id} className="flex items-center justify-between bg-slate-950 p-2 border border-slate-850">
-                        <span>🤝 Warga <b>@{req.warga_profil?.username}</b> ingin memohon untuk menjadi jiran teratak abang.</span>
-                        <div className="flex gap-2">
-                          <button onClick={() => handleUrusJiran(req.id, 'accepted')} className="bg-emerald-950 text-emerald-400 border border-emerald-700 px-3 py-1 hover:bg-emerald-600 hover:text-black font-bold uppercase text-[10px]">Terima</button>
-                          <button onClick={() => handleUrusJiran(req.id, 'rejected')} className="bg-red-950 text-red-400 border border-red-900 px-3 py-1 hover:bg-red-600 hover:text-white uppercase text-[10px]">Tolak</button>
-                        </div>
-                      </div>
-                    ))}
+            {/* ➔ JIKA MOD EDITOR RETRO FULLSCREEN AKTIF */}
+            {isEditorTerbuka ? (
+              <div className="fixed inset-0 bg-slate-950 z-50 p-4 flex flex-col font-mono animate-fadeIn">
+                {/* Top Window Toolbar Dashboard Bar */}
+                <div className="bg-slate-900 border-2 border-slate-800 p-3 flex items-center justify-between mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]">
+                  <div className="text-xs">
+                    🔑 <span className="text-slate-400">Teratak Induk &gt;</span> <span className="text-yellow-400 font-bold">{failAktif.path}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={(e) => handleSimpanKeR2(e)}
+                      disabled={loading}
+                      className="bg-emerald-600 text-slate-950 font-black px-4 py-1.5 text-xs uppercase hover:bg-emerald-500 flex items-center gap-1 shadow-[2px_2px_0px_0px_#047857] disabled:opacity-50"
+                    >
+                      💾 {loading ? "SEDANG MENYIMPAN..." : "SIMPAN PERUBAHAN"}
+                    </button>
+                    <button 
+                      onClick={() => setIsEditorTerbuka(false)}
+                      className="bg-slate-800 border border-slate-700 text-slate-300 font-bold px-4 py-1.5 text-xs uppercase hover:text-white active:scale-95 transition-transform"
+                    >
+                      🚪 TUTUP EDITOR
+                    </button>
                   </div>
                 </div>
-              )}
 
-              <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#ec4899] font-mono text-xs">
-                <h3 className="text-pink-400 font-bold mb-1">💖 PENGURUSAN CARTA JIRAN INTIM (TOP 8)</h3>
-                <p className="text-[10px] text-slate-500 mb-4">Susun dan kunci rakan tetangga abang ke dalam grid paparan 8 slot utama teratak.</p>
+                {/* Status Bar Paparan Sistem */}
+                {statusR2 && (
+                  <div className="mb-2 p-2 bg-slate-900 border border-slate-800 text-[11px] text-emerald-400">
+                    [SISTEM LOG]: {statusR2}
+                  </div>
+                )}
                 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {Array.from({ length: 8 }, (_, i) => {
-                    const slotNum = i + 1;
-                    const jiranKunci = senaraiJiranIntim.find(j => Number(j.slot_kedudukan) === slotNum);
-                    
-                    return (
-                      <div key={slotNum} className="bg-slate-950 border border-slate-850 p-2 flex flex-col justify-between gap-2">
-                        <span className="text-[9px] text-slate-600 font-bold">SLOT 0{slotNum}</span>
-                        {jiranKunci ? (
-                          <div className="flex flex-col gap-1">
-                            <span className="text-pink-400 font-bold truncate">@{jiranKunci.jiran_username}</span>
-                            <button onClick={() => handlePadamJiranIntim(jiranKunci.id)} className="w-full bg-slate-900 border border-red-900/40 text-red-400 py-1 text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all">Kosongkan</button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-1">
-                            <input 
-                              type="text" 
-                              placeholder="nama jiran" 
-                              value={inputSlot[slotNum] || ""} 
-                              onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
-                              className="bg-slate-900 border border-slate-850 px-1 py-0.5 text-[10px] text-white focus:outline-none focus:border-pink-500"
-                            />
-                            <button onClick={() => handleKunciJiranIntim(slotNum)} className="w-full bg-slate-900 border border-slate-750 text-slate-400 py-1 text-[9px] uppercase hover:border-pink-500 hover:text-pink-400 font-bold">Kunci</button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                {/* Ruangan Penyuntingan Kod CRT Luas */}
+                <div className="flex-1 flex flex-col">
+                  <textarea
+                    value={kodHtml}
+                    onChange={(e) => setKodHtml(e.target.value)}
+                    className="w-full flex-1 bg-black text-yellow-300 p-4 font-mono text-xs border-2 border-slate-800 focus:outline-none focus:border-pink-500 resize-none shadow-inner"
+                    rows={25}
+                  />
                 </div>
               </div>
+            ) : (
+              /* ➔ MOD NORMAL: STRUKTUR STRATEGI PENGURUSAN VISUAL PENUH (PANGKAH MERAH HILANG) */
+              <div className="space-y-6">
+                <MenuNavigasiSiber />
 
-            </div>
+                <div className="w-full">
+                  <PengurusFailGrid 
+                    senaraiFail={senaraiFailR2}
+                    loadingFail={loadingFailR2}
+                    onFileSelect={handlePilihFailDariGrid}
+                    onCiptaItem={handleCiptaItemFizikal}
+                    onPadamItem={handlePadamItemFizikal}
+                    namaPengguna={namaPengguna}
+                  />
+                </div>
+
+                {/* ➔ 🛰️ PINDAHAN STRATEGIK: Butang Master Commit Tepat Di Bawah Petak Grid Explorer Fail */}
+                <div className="p-4 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] font-mono">
+                  <button
+                    type="button"
+                    disabled={loading || senaraiFailR2.length === 0}
+                    onClick={(e) => handleSimpanKeR2(e)}
+                    className="w-full bg-slate-950 border-2 border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-500 font-black py-3 px-4 text-xs tracking-widest uppercase transition-all shadow-[4px_4px_0px_0px_rgba(234,179,8,0.15)] active:translate-x-0.5 active:translate-y-0.5"
+                  >
+                    {loading ? "📡 SEDANG MEMANCAR DATA..." : `🛰️ SERAH & KUNCI REKOD PROJEK KE PELAYAN (COMMIT: ${failAktif.name.toUpperCase()})`}
+                  </button>
+                  {statusR2 && (
+                    <div className="mt-3 p-3 bg-slate-950 border border-slate-850 text-slate-400 text-center text-[11px] animate-fadeIn">
+                      [SISTEM LOG]: {statusR2}
+                    </div>
+                  )}
+                  {lamanBerjaya && (
+                    <div className="mt-2 text-center">
+                      <Link 
+                        href={`/laman/${lamanBerjaya}`} 
+                        target="_blank"
+                        className="inline-block text-[11px] font-bold text-pink-400 hover:underline bg-pink-950/20 px-3 py-1 border border-pink-900/30"
+                      >
+                        🔗 Klik Sini Untuk Melawat Hasil Live Teratak Anda!
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* PANEL SOSIAL KAMPUNG */}
+            {!isEditorTerbuka && (
+              <div className="space-y-4 pt-4 border-t-2 border-dashed border-slate-900">
+                
+                {permintaanJiran.length > 0 && (
+                  <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#3b82f6] font-mono text-xs">
+                    <h3 className="text-blue-400 font-bold mb-3">📬 PERMOHONAN JIRAN MASUK ({permintaanJiran.length})</h3>
+                    <div className="space-y-2">
+                      {permintaanJiran.map(req => (
+                        <div key={req.id} className="flex items-center justify-between bg-slate-950 p-2 border border-slate-850">
+                          <span>🤝 Warga <b>@{req.warga_profil?.username}</b> ingin memohon untuk menjadi jiran teratak abang.</span>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleUrusJiran(req.id, 'accepted')} className="bg-emerald-950 text-emerald-400 border border-emerald-700 px-3 py-1 hover:bg-emerald-600 hover:text-black font-bold uppercase text-[10px]">Terima</button>
+                            <button onClick={() => handleUrusJiran(req.id, 'rejected')} className="bg-red-950 text-red-400 border border-red-900 px-3 py-1 hover:bg-red-600 hover:text-white uppercase text-[10px]">Tolak</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+              )}
+
+                <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#ec4899] font-mono text-xs">
+                  <h3 className="text-pink-400 font-bold mb-1">💖 PENGURUSAN CARTA JIRAN INTIM (TOP 8)</h3>
+                  <p className="text-[10px] text-slate-500 mb-4">Susun dan kunci rakan tetangga abang ke dalam grid paparan 8 slot utama teratak.</p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {Array.from({ length: 8 }, (_, i) => {
+                      const slotNum = i + 1;
+                      const jiranKunci = senaraiJiranIntim.find(j => Number(j.slot_kedudukan) === slotNum);
+                      
+                      return (
+                        <div key={slotNum} className="bg-slate-950 border border-slate-850 p-2 flex flex-col justify-between gap-2">
+                          <span className="text-[9px] text-slate-600 font-bold">SLOT 0{slotNum}</span>
+                          {jiranKunci ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-pink-400 font-bold truncate">@{jiranKunci.jiran_username}</span>
+                              <button onClick={() => handlePadamJiranIntim(jiranKunci.id)} className="w-full bg-slate-900 border border-red-900/40 text-red-400 py-1 text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all">Kosongkan</button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col gap-1">
+                              <input 
+                                type="text" 
+                                placeholder="nama jiran" 
+                                value={inputSlot[slotNum] || ""} 
+                                onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))}
+                                className="bg-slate-900 border border-slate-850 px-1 py-0.5 text-[10px] text-white focus:outline-none focus:border-pink-500"
+                              />
+                              <button onClick={() => handleKunciJiranIntim(slotNum)} className="w-full bg-slate-900 border border-slate-750 text-slate-400 py-1 text-[9px] uppercase hover:border-pink-500 hover:text-pink-400 font-bold">Kunci</button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            )}
 
           </div>
         )}

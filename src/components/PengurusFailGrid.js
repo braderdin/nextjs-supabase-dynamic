@@ -8,11 +8,12 @@ export default function PengurusFailGrid({
   onFileSelect, 
   onCiptaItem, 
   onPadamItem, 
-  namaPengguna 
+  namaPengguna,
+  // ➔ 📦 PROP BARU: Terima fungsi simpan/commit terus dari halaman induk
+  onCommitProject,
+  loadingCommit = false
 }) {
-  // ➔ 🎚️ KAWALAN BARU: State suis penukar mod paparan (Grid / List)
   const [modPaparan, setModPaparan] = useState("grid");
-  
   const [folderSemasa, setFolderSemasa] = useState(""); 
   const [inputNamaBaru, setInputNamaBaru] = useState("");
   const [isiFailBaru, setIsiFailBaru] = useState(""); 
@@ -87,189 +88,221 @@ export default function PengurusFailGrid({
   });
 
   return (
-    <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#eab308] font-mono text-xs text-white">
+    <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#eab308] font-mono text-xs text-white flex flex-col justify-between">
       
-      {/* HEADER UTAMA PENGURUS FAIL */}
-      <div className="bg-slate-800 p-2 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 select-none">
-        <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-xs truncate">
-          📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
-        </div>
-        
-        <div className="flex gap-2">
-          {folderSemasa && (
+      <div>
+        {/* HEADER UTAMA PENGURUS FAIL */}
+        <div className="bg-slate-800 p-2 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 select-none">
+          <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-xs truncate">
+            📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
+          </div>
+          
+          <div className="flex gap-2">
+            {folderSemasa && (
+              <button 
+                type="button"
+                onClick={handlePatahBalik}
+                className="bg-slate-950 border border-slate-700 hover:border-pink-500 text-pink-400 px-2.5 py-1 font-bold text-[11px] uppercase transition-colors"
+              >
+                ⬅️ Atas
+              </button>
+            )}
             <button 
               type="button"
-              onClick={handlePatahBalik}
-              className="bg-slate-950 border border-slate-700 hover:border-pink-500 text-pink-400 px-2.5 py-1 font-bold text-[11px] uppercase transition-colors"
+              onClick={() => setModCipta(modCipta === 'fail' ? null : 'fail')}
+              className="bg-slate-950 border border-emerald-500 hover:bg-emerald-600 hover:text-slate-950 text-emerald-400 px-3 py-1 font-bold text-[11px] uppercase transition-all"
             >
-              ⬅️ Atas
+              📄 + Fail
             </button>
-          )}
-          <button 
+            <button 
+              type="button"
+              onClick={() => setModCipta(modCipta === 'folder' ? null : 'folder')}
+              className="bg-slate-950 border border-blue-500 hover:bg-blue-600 hover:text-slate-950 text-blue-400 px-3 py-1 font-bold text-[11px] uppercase transition-all"
+            >
+              📁 + Folder
+            </button>
+          </div>
+        </div>
+
+        {/* TOOLBAR MOD PAPARAN */}
+        <div className="bg-slate-950/60 border-b border-slate-850 p-1.5 px-3 flex items-center justify-end gap-2 text-[10px] select-none text-slate-500">
+          <span className="font-bold tracking-wider">SUSUNAN_PAPARAN:</span>
+          <button
             type="button"
-            onClick={() => setModCipta(modCipta === 'fail' ? null : 'fail')}
-            className="bg-slate-950 border border-emerald-500 hover:bg-emerald-600 hover:text-slate-950 text-emerald-400 px-3 py-1 font-bold text-[11px] uppercase transition-all"
+            onClick={() => setModPaparan('grid')}
+            className={`px-2 py-0.5 border text-[9px] font-black tracking-tight uppercase transition-colors ${
+              modPaparan === 'grid' 
+                ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400 font-bold' 
+                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
+            }`}
           >
-            📄 + Fail
+            🎚️ GRID.SYS
           </button>
-          <button 
+          <button
             type="button"
-            onClick={() => setModCipta(modCipta === 'folder' ? null : 'folder')}
-            className="bg-slate-950 border border-blue-500 hover:bg-blue-600 hover:text-slate-950 text-blue-400 px-3 py-1 font-bold text-[11px] uppercase transition-all"
+            onClick={() => setModPaparan('list')}
+            className={`px-2 py-0.5 border text-[9px] font-black tracking-tight uppercase transition-colors ${
+              modPaparan === 'list' 
+                ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400 font-bold' 
+                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
+            }`}
           >
-            📁 + Folder
+            📝 SENARAI.TXT
           </button>
         </div>
-      </div>
 
-      {/* ➔ 🎚️ TOOLBAR BARU: SUIS UTAMA MOD PAPARAN (PURE RETRO STYLE) */}
-      <div className="bg-slate-950/60 border-b border-slate-850 p-1.5 px-3 flex items-center justify-end gap-2 text-[10px] select-none text-slate-500">
-        <span className="font-bold tracking-wider">SUSUNAN_PAPARAN:</span>
-        <button
-          type="button"
-          onClick={() => setModPaparan('grid')}
-          className={`px-2 py-0.5 border text-[9px] font-black tracking-tight uppercase transition-colors ${
-            modPaparan === 'grid' 
-              ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400 font-bold' 
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
-          }`}
-        >
-          🎚️ GRID.SYS
-        </button>
-        <button
-          type="button"
-          onClick={() => setModPaparan('list')}
-          className={`px-2 py-0.5 border text-[9px] font-black tracking-tight uppercase transition-colors ${
-            modPaparan === 'list' 
-              ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400 font-bold' 
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
-          }`}
-        >
-          📝 SENARAI.TXT
-        </button>
-      </div>
-
-      {/* BORANG DINAMIK: INPUT NAMA & KOTAK TEXT CIPTA FAIL */}
-      {modCipta && (
-        <form onSubmit={handleCiptaEntiti} className="p-4 bg-slate-950 border-b border-slate-850 space-y-3 animate-fadeIn">
-          <div className="flex items-center gap-2">
-            <span className="text-yellow-500 font-bold whitespace-nowrap">Nama {modCipta === 'fail' ? 'Fail' : 'Folder'}:</span>
-            <input 
-              type="text"
-              autoFocus
-              required
-              placeholder={modCipta === 'fail' ? "cth: portfolio.html, tema.css" : "cth: imej, arkib"}
-              value={inputNamaBaru}
-              onChange={(e) => setInputNamaBaru(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-mono"
-            />
-          </div>
-
-          {modCipta === 'fail' && (
-            <div className="space-y-1">
-              <span className="text-emerald-400 block text-[10px] uppercase font-bold tracking-wider">Isi Kandungan Fail / Kod Awal (Opsional):</span>
-              <textarea 
-                rows={5}
-                placeholder=""
-                value={isiFailBaru}
-                onChange={(e) => setIsiFailBaru(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 p-2 font-mono text-xs text-yellow-300 focus:outline-none focus:border-emerald-500 resize-none"
+        {/* BORANG DINAMIK CIPTA FAIL/FOLDER */}
+        {modCipta && (
+          <form onSubmit={handleCiptaEntiti} className="p-4 bg-slate-950 border-b border-slate-850 space-y-3 animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-500 font-bold whitespace-nowrap">Nama {modCipta === 'fail' ? 'Fail' : 'Folder'}:</span>
+              <input 
+                type="text"
+                autoFocus
+                required
+                placeholder={modCipta === 'fail' ? "cth: portfolio.html, tema.css" : "cth: imej, arkib"}
+                value={inputNamaBaru}
+                onChange={(e) => setInputNamaBaru(e.target.value)}
+                className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-mono"
               />
+            </div>
+
+            {modCipta === 'fail' && (
+              <div className="space-y-1">
+                <span className="text-emerald-400 block text-[10px] uppercase font-bold tracking-wider">Isi Kandungan Fail / Kod Awal (Opsional):</span>
+                <textarea 
+                  rows={5}
+                  placeholder="<!-- Tampal atau taip kod HTML/CSS abang di sini... -->"
+                  value={isiFailBaru}
+                  onChange={(e) => setIsiFailBaru(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 p-2 font-mono text-xs text-yellow-300 focus:outline-none focus:border-emerald-500 resize-none"
+                />
+              </div>
+          )}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button type="button" onClick={() => setModCipta(null)} className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 px-3 py-1 text-[11px] uppercase">Batal</button>
+              <button type="submit" className="bg-slate-900 border border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-500 px-4 py-1 text-[11px] font-bold uppercase transition-all">Pacak Item</button>
+            </div>
+          </form>
+        )}
+
+        {/* KONTENA STRUKTUR LAYOUT FAIL */}
+        <div className={`p-4 bg-slate-950 min-h-[240px] max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 ${
+          modPaparan === 'grid' 
+            ? 'grid grid-cols-2 sm:grid-cols-3 gap-3' 
+            : 'flex flex-col gap-2'
+        }`}>
+          
+          {loadingFail && (
+            <div className="col-span-full text-center text-slate-500 font-mono py-12 animate-pulse">
+              🔄 Sedang memancarkan isyarat satelit R2...
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setModCipta(null)} className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 px-3 py-1 text-[11px] uppercase">Batal</button>
-            <button type="submit" className="bg-slate-900 border border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-500 px-4 py-1 text-[11px] font-bold uppercase transition-all">Pacak Item</button>
-          </div>
-        </form>
-      )}
+          {!loadingFail && itemDipapar.length === 0 && (
+            <div className="col-span-full text-center text-slate-600 font-mono text-[11px] py-12 select-none">
+              [ Direktori kosong. Sila klik "+ Fail" untuk bermula abangku! ]
+            </div>
+          )}
 
-      {/* KONTENA DENGAN STRUKTUR KELAS DINAMIK (GRID ATAU LAYOUT SENARAI) */}
-      <div className={`p-4 md:p-6 bg-slate-950 min-h-[220px] max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 ${
-        modPaparan === 'grid' 
-          ? 'grid grid-cols-2 sm:grid-cols-3 gap-4' 
-          : 'flex flex-col gap-2'
-      }`}>
-        
-        {loadingFail && (
-          <div className="col-span-full text-center text-slate-500 font-mono py-12 animate-pulse">
-            🔄 Sedang memancarkan isyarat satelit R2...
-          </div>
-        )}
+          {!loadingFail && itemDipapar.map((item, indeks) => {
+            const adakahFolder = item.jenis === "folder";
+            const lambangIkon = adakahFolder ? "📁" : item.nama.endsWith('.gif') ? "🖼️" : "📄";
 
-        {!loadingFail && itemDipapar.length === 0 && (
-          <div className="col-span-full text-center text-slate-600 font-mono text-[11px] py-12 select-none">
-            [ Direktori kosong. Sila klik "+ Fail" untuk bermula abangku! ]
-          </div>
-        )}
+            // ➔ MOD SENARAI (LIST VIEW) DENGAN AKSES BUTANG RETRO
+            if (modPaparan === 'list') {
+              return (
+                <div 
+                  key={indeks}
+                  className="w-full flex items-center justify-between bg-slate-900 border border-slate-850/60 hover:border-yellow-500 p-2 px-3 group transition-all select-none"
+                >
+                  <div 
+                    onClick={() => adakahFolder ? setFolderSemasa(item.laluanFull) : onFileSelect(item)}
+                    className="flex-1 flex items-center gap-2.5 cursor-pointer truncate"
+                  >
+                    <span className="text-lg filter drop-shadow-sm flex-shrink-0">{lambangIkon}</span>
+                    <span className="text-[11px] font-bold text-slate-200 group-hover:text-yellow-400 truncate">
+                      {item.nama}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {!adakahFolder && (
+                      <button
+                        type="button"
+                        onClick={() => onFileSelect(item)}
+                        className="bg-emerald-950/40 border border-emerald-800/80 text-emerald-400 hover:bg-emerald-500 hover:text-black text-[9px] px-1.5 py-0.5 font-bold uppercase transition-all"
+                      >
+                        Sunting
+                      </button>
+                    )}
+                    <button 
+                      type="button"
+                      onClick={() => handlePadamEntiti(item.laluanFull)}
+                      className="bg-red-950/50 border border-red-900/40 text-red-400 hover:bg-red-600 hover:text-white text-[9px] px-1.5 py-0.5 font-bold uppercase transition-colors"
+                    >
+                      Padam
+                    </button>
+                  </div>
+                </div>
+              );
+            }
 
-        {!loadingFail && itemDipapar.map((item, indeks) => {
-          const adakahFolder = item.jenis === "folder";
-          const lambangIkon = adakahFolder ? "📁" : item.nama.endsWith('.gif') ? "🖼️" : "📄";
-
-          // ➔ 📝 LAYOUT ALTERNATIF: Render gaya Senarai Berbaris Panjang (List View)
-          if (modPaparan === 'list') {
+            // ➔ MOD GRID (GRID VIEW) DENGAN STRUKTUR AKSI HOVER RETRO
             return (
               <div 
                 key={indeks}
-                className="w-full flex items-center justify-between bg-slate-900 border border-slate-850/60 hover:border-yellow-500 p-2.5 px-4 group transition-all select-none shadow-sm"
+                className="bg-slate-900 border-2 border-slate-850 hover:border-yellow-500 p-3 flex flex-col items-center justify-between text-center relative group transition-all select-none shadow-sm min-h-[95px]"
               >
-                <div 
-                  onClick={() => adakahFolder ? setFolderSemasa(item.laluanFull) : onFileSelect(item)}
-                  className="flex-1 flex items-center gap-3 cursor-pointer truncate"
-                >
-                  <span className="text-xl filter drop-shadow-sm flex-shrink-0">{lambangIkon}</span>
-                  <span className="text-[11px] font-bold text-slate-200 group-hover:text-yellow-400 truncate">
-                    {item.nama}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider bg-slate-950 px-1.5 py-0.5 border border-slate-850 hidden sm:inline-block">
-                    {item.jenis}
-                  </span>
+                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity z-10">
                   <button 
                     type="button"
                     onClick={() => handlePadamEntiti(item.laluanFull)}
-                    className="bg-red-950/50 border border-red-900/40 text-red-400 hover:bg-red-600 hover:text-white text-[9px] px-2 py-0.5 font-bold uppercase transition-colors"
+                    className="bg-red-950 border border-red-700 text-red-400 hover:bg-red-600 hover:text-white text-[8px] px-1 rounded font-bold"
                   >
-                    DEL
+                    ❌
                   </button>
                 </div>
+
+                <div 
+                  onClick={() => adakahFolder ? setFolderSemasa(item.laluanFull) : onFileSelect(item)}
+                  className="w-full flex flex-col items-center cursor-pointer py-1"
+                >
+                  <span className="text-2xl mb-1 filter drop-shadow">{lambangIkon}</span>
+                  <span className="text-[11px] font-bold text-slate-200 group-hover:text-yellow-400 truncate w-full px-1">
+                    {item.nama}
+                  </span>
+                </div>
+
+                {/* ➔ AKSES PINTAS SUN TING DI MOD GRID */}
+                {!adakahFolder && (
+                  <button
+                    type="button"
+                    onClick={() => onFileSelect(item)}
+                    className="w-full mt-1 bg-slate-950 border border-slate-800 text-slate-400 group-hover:border-emerald-500 group-hover:text-emerald-400 py-0.5 text-[9px] font-bold uppercase transition-all"
+                  >
+                    [ SUN TING ]
+                  </button>
+                )}
               </div>
             );
-          }
-
-          // ➔ 🎚️ LAYOUT ASAL: Render gaya Grid Ikon Berkotak (Grid View)
-          return (
-            <div 
-              key={indeks}
-              className="bg-slate-900 border-2 border-slate-850 hover:border-yellow-500 p-3 flex flex-col items-center justify-between text-center relative group transition-all select-none shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)]"
-            >
-              <button 
-                type="button"
-                onClick={() => handlePadamEntiti(item.laluanFull)}
-                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-950 border border-red-700 text-red-400 hover:bg-red-600 hover:text-white text-[9px] px-1 rounded transition-opacity"
-              >
-                DEL
-              </button>
-
-              <div 
-                onClick={() => adakahFolder ? setFolderSemasa(item.laluanFull) : onFileSelect(item)}
-                className="w-full flex flex-col items-center cursor-pointer py-1"
-              >
-                <span className="text-3xl mb-2 filter drop-shadow">
-                  {lambangIkon}
-                </span>
-                <span className="text-[11px] font-bold text-slate-200 group-hover:text-yellow-400 truncate w-full px-1">
-                  {item.nama}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+          })}
+        </div>
       </div>
+
+      {/* ➔ 📦 PINDAHAN STRATEGIK: Butang Commit Pelayan Kekal Di Bawah Petak Fail */}
+      <div className="p-3 bg-slate-950 border-t-2 border-slate-800 select-none">
+        <button
+          type="button"
+          disabled={loadingCommit || senaraiFail.length === 0}
+          onClick={onCommitProject}
+          className="w-full bg-slate-900 border-2 border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-400 font-mono font-black py-2.5 px-4 text-[11px] tracking-wider uppercase transition-all shadow-[3px_3px_0px_0px_rgba(234,179,8,0.2)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          {loadingCommit ? "🔄 SEDANG BERHUBUNG..." : "🚀 KUNCI PROJEK KE PELAYAN (COMMIT)"}
+        </button>
+      </div>
+
     </div>
   );
 }
