@@ -1,6 +1,6 @@
 import { S3Client, ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js"; // ➔ TAMBAHAN: Import Supabase Client
+import { createClient } from "@supabase/supabase-js"; 
 
 // Mula: Inisialisasi Hubungan R2 (Menggunakan kunci .env.local asal abang)
 const r2Client = new S3Client({
@@ -19,7 +19,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Tamat: Inisialisasi Hubungan Supabase Pelayan
 
-// 📥 GET: Membaca seluruh isi kandungan objek R2 milik username dan menukarnya ke format VFS Grid
+// =====================================================================
+// Mula: Fungsi GET untuk Membaca Fail & Folder R2
+// =====================================================================
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -39,13 +41,11 @@ export async function GET(request) {
     const folderDitemui = new Set();
 
     objekMentah.forEach((obj) => {
-      // Potong prefix nama folder induk pengguna secara selamat ( mixed-case safe )
       const laluanRelatif = obj.Key.substring(username.toLowerCase().length + 1);
       if (!laluanRelatif || laluanRelatif === ".keep") return;
       
       const segmen = laluanRelatif.split("/");
 
-      // Logik Rekursif: Wujudkan entiti folder secara automatik berdasarkan susunan sub-path prefix
       let jalurSemasa = "";
       for (let i = 0; i < segmen.length - 1; i++) {
         if (jalurSemasa) jalurSemasa += "/";
@@ -60,10 +60,8 @@ export async function GET(request) {
         }
       }
 
-      // Pastikan fail placeholder .keep milik folder kosong tidak tersenarai sebagai fail visual
       if (segmen[segmen.length - 1] === ".keep") return;
 
-      // ➔ ✅ PEMBAIKAN JITU: Menggunakan laluanRelatif yang betul untuk mengelakkan ralat ReferenceError / Crash 500
       VFS.push({
         nama: segmen[segmen.length - 1],
         jenis: "fail",
@@ -75,15 +73,17 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}
+} 
+// Tamat: Fungsi GET untuk Membaca Fail & Folder R2
 
-// ❌ DELETE: Menguruskan pemadaman fail tunggal atau pemadaman melata (cascading folder delete)
+// =====================================================================
+// Mula: Fungsi DELETE untuk Pemadaman Melata R2 & Log Supabase
+// =====================================================================
 export async function DELETE(request) {
   try {
     const { username, pathFail } = await request.json();
     const targetKunci = `${username.toLowerCase()}/${pathFail}`;
 
-    // Cari semua sub-objek di bawah prefix tersebut (Menyokong pemadaman folder beserta isinya)
     const cariCommand = new ListObjectsV2Command({
       Bucket: process.env.R2_BUCKET_NAME,
       Prefix: targetKunci,
@@ -100,16 +100,13 @@ export async function DELETE(request) {
         }));
       }
     } else {
-      // Fallback untuk pemadaman fail tunggal jika ListObjects kosong
       await r2Client.send(new DeleteObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Key: targetKunci,
       }));
     }
 
-    // =====================================================================
-    // Mula: SURGICAL INJECTION - Kirim Denyutan Pemadaman Fail ke Supabase
-    // =====================================================================
+    // Mula: Log Aktiviti Pemadaman Warga ke Supabase
     try {
       await supabase.from("aktiviti_warga").insert({
         username: username.toLowerCase(),
@@ -119,11 +116,11 @@ export async function DELETE(request) {
     } catch (errDelLog) {
       console.error("Gagal merekod suapan log pemadaman:", errDelLog);
     }
-    // =====================================================================
-    // Tamat: SURGICAL INJECTION - Kirim Denyutan Pemadaman Fail ke Supabase
+    // Tamat: Log Aktiviti Pemadaman Warga ke Supabase
 
     return NextResponse.json({ success: true, message: "Item berjaya dipadam secara kekal dari R2!" });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+// Tamat: Fungsi DELETE untuk Pemadaman Melata R2 & Log Supabase

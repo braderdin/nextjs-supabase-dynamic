@@ -10,15 +10,13 @@ function KandunganUtamaAktiviti() {
   const router = useRouter();
   const halamanSemasa = Number(searchParams.get('page')) || 1;
   
-  // Mula: State Pengurusan UI & Data Live Database
   const [kataKunci, setKataKunci] = useState("");
   const [senaraiAktiviti, setSenaraiAktiviti] = useState([]);
   const [totalAktiviti, setTotalAktiviti] = useState(0);
   const [loading, setLoading] = useState(true);
   const [inputKomen, setInputKomen] = useState({});
-  // Tamat: State Pengurusan UI & Data Live Database
 
-  // Mula: Fungsi memuat turun data log secara live dari pangkalan data Supabase
+  // Mula: Fungsi Memanggil Suapan API Aktiviti Supabase secara Dinamik
   async function muatAktivitiLive() {
     setLoading(true);
     try {
@@ -34,21 +32,19 @@ function KandunganUtamaAktiviti() {
       setLoading(false);
     }
   }
-  // Tamat: Fungsi memuat turun data log secara live dari pangkalan data Supabase
+  // Tamat: Fungsi Memanggil Suapan API Aktiviti Supabase secara Dinamik
 
-  // Cetus pemanggilan semula data apabila berlaku perubahan muka surat
   useEffect(() => {
     muatAktivitiLive();
   }, [halamanSemasa]);
 
-  // Fungsi Mengendalikan Carian Aktiviti Hantar Form
   const handleCarianAktiviti = (e) => {
     e.preventDefault();
     router.push(`/activity?page=1`);
     muatAktivitiLive();
   };
 
-  // Mula: Fungsi memproses isyarat Like ke Supabase
+  // Mula: Fungsi Menghantar Isyarat Klik Suka (Like)
   const handleTekanLike = async (id) => {
     try {
       const respon = await fetch("/api/activity", {
@@ -66,9 +62,9 @@ function KandunganUtamaAktiviti() {
       alert("⚠️ Gagal menghantar isyarat suka abangku.");
     }
   };
-  // Tamat: Fungsi memproses isyarat Like ke Supabase
+  // Tamat: Fungsi Menghantar Isyarat Klik Suka (Like)
 
-  // Mula: Fungsi memproses hantaran ulasan baharu secara real-time
+  // Mula: Fungsi Menghantar Catatan Ulasan Real-Time
   const handleHantarKomen = async (e, id) => {
     e.preventDefault();
     const teks = inputKomen[id]?.trim();
@@ -91,14 +87,14 @@ function KandunganUtamaAktiviti() {
       alert("⚠️ Gagal mengunci ulasan digital.");
     }
   };
-  // Tamat: Fungsi memproses hantaran ulasan baharu secara real-time
+  // Tamat: Fungsi Menghantar Catatan Ulasan Real-Time
 
   const jumlahHalaman = Math.ceil(totalAktiviti / 5) || 1;
 
   return (
     <div className="max-w-5xl w-full mx-auto px-4 py-6 md:py-8 flex-1 flex flex-col gap-6 md:gap-8">
       
-      {/* Mula: Nombor 1 - Barisan Butang Navigasi Kecil Kanan Atas Pages */}
+      {/* Bahagian 1: Barisan Butang Navigasi Pantas Kanan Atas */}
       <div className="flex justify-between items-center font-mono">
         <span className="text-[10px] text-emerald-400 font-bold hidden sm:inline">[ STATUS: LIVE_DATABASE_FEED ]</span>
         <div className="flex gap-2 ml-auto">
@@ -110,9 +106,8 @@ function KandunganUtamaAktiviti() {
           </Link>
         </div>
       </div>
-      {/* Tamat: Nombor 1 - Barisan Butang Navigasi Kecil Kanan Atas Pages */}
 
-      {/* Mula: Nombor 2 - Tajuk Bahasa Melayu & Kolum Carian Tag Input */}
+      {/* Bahagian 2: Tajuk & Kolum Carian Tag Input */}
       <div className="p-6 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#10b981] font-mono">
         <h1 className="text-xl md:text-2xl font-black text-emerald-400 uppercase tracking-tight">
           📢 Denyutan Aktiviti Terkini Teratak Siber
@@ -121,7 +116,6 @@ function KandunganUtamaAktiviti() {
           Pantau pergerakan warga siber membina, mengemas kini, dan menghias laman web mereka secara live.
         </p>
 
-        {/* Kotak Input Carian Retro */}
         <form onSubmit={handleCarianAktiviti} className="mt-4 flex gap-2 items-center bg-slate-950 border border-slate-800 p-2">
           <span className="text-yellow-500 text-xs pl-1 font-bold">TAPIS_AKSI:</span>
           <input 
@@ -136,9 +130,8 @@ function KandunganUtamaAktiviti() {
           </button>
         </form>
       </div>
-      {/* Tamat: Nombor 2 - Tajuk Bahasa Melayu & Kolum Carian Tag Input */}
 
-      {/* Mula: Nombor 3 - Senarai Aktiviti, Post Komen, dan Butang Like */}
+      {/* Bahagian 3: Senarai Aktiviti Terkini Warga */}
       <div className="space-y-4 font-mono">
         {loading ? (
           <div className="text-center text-xs py-12 border-2 border-dashed border-slate-850 bg-slate-900 text-slate-500 animate-pulse">
@@ -152,7 +145,6 @@ function KandunganUtamaAktiviti() {
           senaraiAktiviti.map((item) => (
             <div key={item.id} className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_rgba(59,130,246,0.2)] space-y-3">
               
-              {/* Kepala Suapan Aktiviti */}
               <div className="flex justify-between items-start border-b border-slate-950 pb-2">
                 <div className="text-xs text-slate-300">
                   <Link href={`/laman/${item.username}`} className="text-pink-400 font-bold hover:underline">@{item.username}</Link>
@@ -164,7 +156,6 @@ function KandunganUtamaAktiviti() {
                 </span>
               </div>
 
-              {/* Seksyen Interaksi Button Like */}
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => handleTekanLike(item.id)}
@@ -175,7 +166,6 @@ function KandunganUtamaAktiviti() {
                 <span className="text-[10px] text-slate-600">{(item.komen || []).length} ulasan digital</span>
               </div>
 
-              {/* Sub-Senarai Komen yang Ditinggalkan */}
               {(item.komen || []).length > 0 && (
                 <div className="bg-slate-950 p-2.5 border border-slate-850 space-y-2 text-[11px] max-h-[180px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
                   {item.komen.map((kom, i) => (
@@ -187,7 +177,6 @@ function KandunganUtamaAktiviti() {
                 </div>
               )}
 
-              {/* Borang Input untuk Meninggalkan Komen Baru */}
               <form onSubmit={(e) => handleHantarKomen(e, item.id)} className="flex gap-2">
                 <input 
                   type="text"
@@ -209,9 +198,8 @@ function KandunganUtamaAktiviti() {
           ))
         )}
       </div>
-      {/* Tamat: Nombor 3 - Senarai Aktiviti, Post Komen, dan Butang Like */}
 
-      {/* Mula: Nombor 4 - Gaya Bernombor Navigasi Halaman (Pagination) */}
+      {/* Bahagian 4: Gaya Bernombor Navigasi Halaman (Pagination) */}
       <div className="flex justify-center items-center gap-2 font-mono text-xs pt-4 border-t-2 border-dashed border-slate-900">
         <span className="text-slate-600 uppercase font-black text-[10px] mr-2">Muka Surat:</span>
         {Array.from({ length: jumlahHalaman }, (_, i) => i + 1).map((NoPage) => {
@@ -231,7 +219,6 @@ function KandunganUtamaAktiviti() {
           );
         })}
       </div>
-      {/* Tamat: Nombor 4 - Gaya Bernombor Navigasi Halaman (Pagination) */}
 
     </div>
   );
