@@ -1,3 +1,4 @@
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
 import Link from 'next/link';  
 
@@ -5,25 +6,39 @@ import Link from 'next/link';
 import KomponenKomenDanKaunter from "@/components/KomponenKomenDanKaunter"; 
 import WidgetJiranIntim from "@/components/WidgetJiranIntim"; 
 
+const r2Client = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
+}); 
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+async function tukarStreamKeTeks(stream) {
+  const chunks = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  } 
+  return Buffer.concat(chunks).toString("utf8");
+}
 
 export default async function LamanWargaSiber({ params }) {
   const resolvedParams = await params;
   const namaPengguna = resolvedParams.namaPengguna;
   const jaluan = resolvedParams.jaluan;
 
-  // Menyusun semula laluan fail secara dinamik
   const subPathFail = jaluan && jaluan.length > 0 ? jaluan.join('/') : 'index.html';
+  const namaFailFull = `${namaPengguna.toLowerCase()}/${subPathFail}`;
 
   let senaraiJiranIntim = [];
-  let profilWujud = false;
+  let kodIsiAsli = "";
 
   try {
-    // =====================================================================
-    // Mula: Semakan Profil Warga & Jiran Intim via Supabase
-    // =====================================================================
     const { data: profil } = await supabase
       .from('warga_profil')
       .select('id')
@@ -31,45 +46,48 @@ export default async function LamanWargaSiber({ params }) {
       .maybeSingle();
 
     if (profil) {
-      profilWujud = true; // Mengesahkan bahawa teratak warga ini memang wujud dalam database
       const { data: jiranData } = await supabase
         .from('jiran_intim')
         .select('jiran_username, slot_kedudukan')
         .eq('user_id', profil.id)
         .order('slot_kedudukan', { ascending: true });
-                  
+            
       if (jiranData) {
         senaraiJiranIntim = jiranData;
       }
     }
-    // =====================================================================
-    // Tamat: Semakan Profil Warga & Jiran Intim via Supabase
-    // =====================================================================
 
-    // Jika nama teratak tiada langsung dalam rekod pangkalan data kampung
-    if (!profilWujud) {
-      throw new Error("Profil ghaib");
+    // =====================================================================
+    // Mula: Enjin Imbasan Direktori Auto Fallback (Surgical Fix Index Fallback)
+    // =====================================================================
+    try {
+      // Cubaan pertama: Ambil fail secara tepat berdasarkan subPath URL
+      const arahanAmbil = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: namaFailFull,
+      });
+      const responR2 = await r2Client.send(arahanAmbil);
+      kodIsiAsli = await tukarStreamKeTeks(responR2.Body);
+    } catch (errR2) {
+      // Cubaan kedua (Fallback): Jika fail tiada, kemungkinan besar ia adalah sebuah folder direktori
+      const folderKeyFallback = `${namaFailFull.replace(/\/$/, '')}/index.html`;
+      const arahanFolder = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: folderKeyFallback,
+      });
+      const responFolder = await r2Client.send(arahanFolder);
+      kodIsiAsli = await tukarStreamKeTeks(responFolder.Body);
     }
+    // =====================================================================
+    // Tamat: Enjin Imbasan Direktori Auto Fallback (Surgical Fix Index Fallback)
+    // =====================================================================
 
     // Memastikan bar kaunter pelawat dan top 8 jiran muncul jika berada di index utama teratak
     const adakahLamanUtama = subPathFail === 'index.html' || subPathFail === '';
 
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
-        
-        {/* ===================================================================== */}
-        {/* Mula: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS)    */}
-        {/* ===================================================================== */}
-        <div className={adakahLamanUtama ? "w-full h-[75vh] min-h-[550px] border-b-2 border-slate-900 bg-slate-950" : "w-full h-screen overflow-hidden bg-slate-950"}>
-          <iframe 
-            src={`/api/raw-serve?username=${namaPengguna}&path=${subPathFail}`}
-            className="w-full h-full border-0 block"
-            sandbox="allow-scripts allow-forms allow-popups"
-          />
-        </div>
-        {/* ===================================================================== */}
-        {/* Tamat: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS)   */}
-        {/* ===================================================================== */}
+        <div dangerouslySetInnerHTML={{ __html: kodIsiAsli }} />
         
         {adakahLamanUtama && (
           <>
@@ -82,7 +100,6 @@ export default async function LamanWargaSiber({ params }) {
       </div>
     );
   } catch (error) {
-    // Paparan Ralat 404 Jika Teratak atau Folder Gagal Ditemui
     return (
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
         <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
