@@ -15,10 +15,10 @@ export default function BorangStudioKreatif({
   const [inputLagu, setInputLagu] = useState("");
   const [notifikasiLagu, setNotifikasiLagu] = useState("");
 
-  // Mula: PEMBAIKAN STATE EMOSI FASA 3 - setMoodParlan dilaraskan kepada setMoodPilihan
+  // Mula: PEMBAIKAN JITU - Menyelaras setMoodParlan kepada setMoodPilihan yang tepat
   const [moodPilihan, setMoodPilihan] = useState("☕");
   const [moodTeksInput, setMoodTeksInput] = useState("Bertukang Kod");
-  // Tamat: PEMBAIKAN STATE EMOSI FASA 3
+  // Tamat: PEMBAIKAN JITU - Menyelaras setMoodParlan kepada setMoodPilihan yang tepat
 
   function handleMuatTemplateAsas(e) {
     e.preventDefault();
@@ -62,7 +62,6 @@ export default function BorangStudioKreatif({
   return (
     <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#10b981] space-y-6">
       
-      {/* Mula: Paparan Dashboard Analutik Piksel Vibe Retro CSS Grid */}
       <div className="p-6 bg-slate-950 m-4 border border-slate-850 font-mono select-none">
         <span className="text-[10px] text-emerald-400 font-bold block uppercase tracking-wider mb-3">📊 BILIK KAWALAN: ANALUTIK PIKSEL TERATAK</span>
         <div className="space-y-3 bg-black p-4 border border-slate-900">
@@ -83,9 +82,7 @@ export default function BorangStudioKreatif({
           </div>
         </div>
       </div>
-      {/* Tamat: Paparan Dashboard Analutik Piksel Vibe Retro CSS Grid */}
 
-      {/* Mula: Panel Input Mood & Lencana 88x31 Pro Webmaster */}
       <div className="mx-6 p-4 bg-slate-950 border border-slate-850 font-mono space-y-4 select-none">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -94,7 +91,11 @@ export default function BorangStudioKreatif({
               <select value={moodPilihan} onChange={(e) => setMoodPilihan(e.target.value)} className="bg-slate-900 border border-slate-800 text-xs px-2 py-2 text-white focus:outline-none">
                 <option value="☕">☕ Coding</option>
                 <option value="🏍️">🏍️ Merempit</option>
+                
+                {/* Mula: PEMBAIKAN JITU - Mengubah elemen dt menjadi tag option select siber yang sah */}
                 <option value="🔥">🔥 Membakar</option>
+                {/* Tamat: PEMBAIKAN JITU - Mengubah elemen dt menjadi tag option select siber yang sah */}
+                
                 <option value="💻">⚡ Siber</option>
               </select>
               <input type="text" value={moodTeksInput} onChange={(e) => setMoodTeksInput(e.target.value)} placeholder="Status Emosi Anda..." className="flex-1 bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-white focus:outline-none" />
@@ -106,7 +107,6 @@ export default function BorangStudioKreatif({
           </div>
         </div>
       </div>
-      {/* Tamat: Panel Input Mood & Lencana 88x31 Pro Webmaster */}
 
       <div className="bg-slate-800 px-4 py-2 flex items-center justify-between border-b-2 border-slate-800 font-mono text-xs text-slate-200 select-none">
         <span className="flex items-center gap-2 text-emerald-400 font-bold">

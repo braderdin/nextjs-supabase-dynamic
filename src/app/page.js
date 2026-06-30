@@ -62,7 +62,11 @@ export default function Home() {
   async function handlePilihFailDariGrid(fail) {
     if (fail.jenis === 'folder') return;
     setFailAktif({ name: fail.nama, path: fail.laluanFull });
-    loading = true;
+    
+    // Mula: PEMBAIKAN JITU - Mengganti loading = true kepada fungsi setter React yang sah
+    setLoading(true); 
+    // Tamat: PEMBAIKAN JITU - Mengganti loading = true kepada fungsi setter React yang sah
+    
     setStatusR2(`Membuka dekripsi data fail [${fail.laluanFull}]... 📥`);
     setLamanBerjaya("");
     try {
@@ -203,15 +207,13 @@ export default function Home() {
       await muatSenaraiFailDaripadaR2(data.username); 
       try {
         const amarahRespon = await fetch(`/api/upload?username=${data.username}&path=index.html`);
-        // Mula: PEMBAIKAN JITU - Menukar amaranRespon kepada amarahRespon untuk elak crash
         const dataKod = await amarahRespon.json(); 
-        // Tamat: PEMBAIKAN JITU - Menukar amaranRespon kepada amarahRespon untuk elak crash
         if (dataKod.success && dataKod.kodHtml) setKodHtml(dataKod.kodHtml);
       } catch (err) { console.error(err); }
     } else { setHasProfil(false); }
   }
 
-  async function ambilWargaLive() {
+  async function ambilWargaR2() {
     try {
       const respon = await fetch("/api/warga");
       const hasil = await respon.json();
@@ -236,7 +238,11 @@ export default function Home() {
     });
 
     ambilDataSupabase();
-    ambilWargaLive();
+    
+    // Mula: PEMBAIKAN JITU - Memanggil fungsi ambilWargaR2 yang ditakrifkan untuk elak ReferenceError
+    ambilWargaR2();
+    // Tamat: PEMBAIKAN JITU - Memanggil fungsi ambilWargaR2 yang ditakrifkan untuk elak ReferenceError
+    
     ambilDataShoutbox();
 
     const saluranShout = supabase
@@ -266,7 +272,12 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ namaPengguna: usernameInput, kodHtml, pathFailBaru: "index.html" }),
         });
-        await ambilWargaLive(); await muatSenaraiFailDaripadaR2(usernameInput);
+        
+        // Mula: PEMBAIKAN JITU - Menyelaras fungsi kepada penarik data R2 yang betul
+        await ambilWargaR2(); 
+        // Tamat: PEMBAIKAN JITU - Menyelaras fungsi kepada penarik data R2 yang betul
+        
+        await muatSenaraiFailDaripadaR2(usernameInput);
       }
     } catch (err) { setErrorProfil("Ralat Sistem: Gagal menuntut nama."); }
     finally { setLoadingProfil(false); }

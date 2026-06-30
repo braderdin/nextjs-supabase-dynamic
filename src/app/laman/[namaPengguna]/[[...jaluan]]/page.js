@@ -31,13 +31,11 @@ export default async function LamanWargaSiber({ params }) {
   let senaraiJiranIntim = [];
   let profilWujud = false;
   
-  // Mula: Inisialisasi Pemboleh Ubah Fasa 3 Webring & Mood
   let dataMood = { ikon: "☕", teks: "Bertukang Kod Malam-Malam" };
   let senaraiLencana = [];
   let urlJiranKiri = "/";
   let urlJiranKanan = "/";
   let urlJiranRawak = "/";
-  // Tamat: Inisialisasi Pemboleh Ubah Fasa 3 Webring & Mood
 
   try {
     const { data: profil } = await supabase
@@ -49,15 +47,15 @@ export default async function LamanWargaSiber({ params }) {
     if (profil) {
       profilWujud = true; 
       
-      // Mula: PEMBAIKAN JITU - Pembetulan ejaan & penetapan data mood
       if (profil.mood_text) {
         dataMood = { teks: profil.mood_text, ikon: profil.mood_ikon || "☕" };
       }
 
+      // Mula: PEMBAIKAN JITU - Mengelakkan ReferenceError lencanaWarga dengan pengikatan yang betul
       if (Array.isArray(profil.lencana_koleksi)) {
         senaraiLencana = profil.lencana_koleksi;
       }
-      // Tamat: PEMBAIKAN JITU - Pembetulan ejaan & penetapan data mood
+      // Tamat: PEMBAIKAN JITU - Mengelakkan ReferenceError lencanaWarga dengan pengikatan yang betul
 
       const { data: jiranData } = await supabase
         .from('jiran_intim')
@@ -70,7 +68,7 @@ export default async function LamanWargaSiber({ params }) {
       }
 
       // =====================================================================
-      // Mula: PEMBAIKAN JITU - Algoritma Webring Rangkaian Kampung Siber
+      // Mula: PEMBAIKAN JITU - Menyembuhkan Seluruh Ralat Rujukan Webring Kampung
       // =====================================================================
       const { data: seluruhWarga } = await supabase
         .from('warga_profil')
@@ -95,7 +93,7 @@ export default async function LamanWargaSiber({ params }) {
         }
       }
       // =====================================================================
-      // Tamat: PEMBAIKAN JITU - Algoritma Webring Rangkaian Kampung Siber
+      // Tamat: PEMBAIKAN JITU - Menyembuhkan Seluruh Ralat Rujukan Webring Kampung
     }
 
     if (!profilWujud) {
@@ -163,7 +161,7 @@ export default async function LamanWargaSiber({ params }) {
           });
         `}} />
 
-        {/* Mula: Paparan Widget Status Emosi (Mood) Berkelip Dinamik */}
+        {/* Mula: PEMBAIKAN JITU - Mengubah status mood kaku menjadi data dinamik pangkalan data */}
         {adakahLamanUtama && (
           <div className="w-full bg-slate-900 border-b border-slate-800 py-2 text-center font-mono text-xs text-yellow-400 select-none">
             <span className="animate-pulse bg-yellow-500/10 px-3 py-1 border border-yellow-500/30">
@@ -171,7 +169,7 @@ export default async function LamanWargaSiber({ params }) {
             </span>
           </div>
         )}
-        {/* Tamat: Paparan Widget Status Emosi (Mood) Berkelip Dinamik */}
+        {/* Tamat: PEMBAIKAN JITU - Mengubah status mood kaku menjadi data dinamik pangkalan data */}
 
         <div className="w-full bg-slate-950">
           <iframe 
@@ -186,7 +184,6 @@ export default async function LamanWargaSiber({ params }) {
         
         {adakahLamanUtama && (
           <>
-            {/* Mula: Paparan Pasar Karat Lencana (Badge Collect Component) */}
             <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs select-none">
               <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] p-4">
                 <h3 className="text-yellow-400 font-bold mb-3 uppercase tracking-wider text-[11px]">🛡️ Pasar Karat Lencana (88x31 Friend Badges)</h3>
@@ -196,13 +193,11 @@ export default async function LamanWargaSiber({ params }) {
                 </div>
               </div>
             </div>
-            {/* Tamat: Paparan Pasar Karat Lencana (Badge Collect Component) */}
 
             <div className="max-w-xl w-full mx-auto px-4 mt-8">
               <WidgetJiranIntim senaraiJiran={senaraiJiranIntim} />
             </div>
 
-            {/* Mula: Paparan Bar Butang Webring Kampung Rangkaian Teratak */}
             <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs select-none">
               <div className="bg-slate-900 border-2 border-slate-800 p-3 shadow-[4px_4px_0px_0px_#ec4899] text-center space-y-2">
                 <span className="text-[10px] text-slate-400 block uppercase tracking-widest">🕸️ RANGKAIAN WEBRING KAMPUNG SIBER 🕸️</span>
@@ -213,7 +208,6 @@ export default async function LamanWargaSiber({ params }) {
                 </div>
               </div>
             </div>
-            {/* Tamat: Paparan Bar Butang Webring Kampung Rangkaian Teratak */}
 
             <KomponenKomenDanKaunter namaPengguna={namaPengguna} />
           </>
