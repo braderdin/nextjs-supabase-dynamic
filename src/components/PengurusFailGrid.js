@@ -9,9 +9,10 @@ export default function PengurusFailGrid({
   onCiptaItem, 
   onPadamItem, 
   namaPengguna,
-  // ➔ 📦 PROP BARU: Terima fungsi simpan/commit terus dari halaman induk
   onCommitProject,
-  loadingCommit = false
+  loadingCommit = false,
+  // ➔ 📋 PROP BARU: Fungsi untuk membuka paparan dokumentasi jenis fail
+  onShowWhitelist
 }) {
   const [modPaparan, setModPaparan] = useState("grid");
   const [folderSemasa, setFolderSemasa] = useState(""); 
@@ -25,7 +26,7 @@ export default function PengurusFailGrid({
 
   function sahkanKeselamatanFail(nama) {
     const pecahan = nama.split('.');
-    if (pecahan.length < 2) return false; 
+    if (pecapan.length < 2) return false; 
     const ekstensi = pecahan.pop().toLowerCase();
     return EKSTENSI_DIBENARKAN.includes(ekstensi);
   }
@@ -93,8 +94,19 @@ export default function PengurusFailGrid({
       <div>
         {/* HEADER UTAMA PENGURUS FAIL */}
         <div className="bg-slate-800 p-2 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 select-none">
-          <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-xs truncate">
-            📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
+          <div className="flex items-center gap-2">
+            <div className="bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-[150px] sm:max-w-xs truncate">
+              📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
+            </div>
+            
+            {/* ➔ 📋 SUNTIKAN BARU: Butang Dokumen Jenis Fail Sah (Anak Panah Merah) */}
+            <button
+              type="button"
+              onClick={onShowWhitelist}
+              className="bg-slate-950 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-2 py-1 font-bold text-[10px] uppercase transition-all tracking-tight"
+            >
+              📋 JENIS_FAIL.TXT
+            </button>
           </div>
           
           <div className="flex gap-2">
@@ -172,13 +184,13 @@ export default function PengurusFailGrid({
                 <span className="text-emerald-400 block text-[10px] uppercase font-bold tracking-wider">Isi Kandungan Fail / Kod Awal (Opsional):</span>
                 <textarea 
                   rows={5}
-                  placeholder="<!-- Tampal atau taip kod HTML/CSS abang di sini... -->"
+                  placeholder=""
                   value={isiFailBaru}
                   onChange={(e) => setIsiFailBaru(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 p-2 font-mono text-xs text-yellow-300 focus:outline-none focus:border-emerald-500 resize-none"
                 />
               </div>
-          )}
+            )}
 
             <div className="flex justify-end gap-2 pt-1">
               <button type="button" onClick={() => setModCipta(null)} className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 px-3 py-1 text-[11px] uppercase">Batal</button>
@@ -210,7 +222,6 @@ export default function PengurusFailGrid({
             const adakahFolder = item.jenis === "folder";
             const lambangIkon = adakahFolder ? "📁" : item.nama.endsWith('.gif') ? "🖼️" : "📄";
 
-            // ➔ MOD SENARAI (LIST VIEW) DENGAN AKSES BUTANG RETRO
             if (modPaparan === 'list') {
               return (
                 <div 
@@ -249,7 +260,6 @@ export default function PengurusFailGrid({
               );
             }
 
-            // ➔ MOD GRID (GRID VIEW) DENGAN STRUKTUR AKSI HOVER RETRO
             return (
               <div 
                 key={indeks}
@@ -275,7 +285,6 @@ export default function PengurusFailGrid({
                   </span>
                 </div>
 
-                {/* ➔ AKSES PINTAS SUN TING DI MOD GRID */}
                 {!adakahFolder && (
                   <button
                     type="button"
@@ -291,7 +300,6 @@ export default function PengurusFailGrid({
         </div>
       </div>
 
-      {/* ➔ 📦 PINDAHAN STRATEGIK: Butang Commit Pelayan Kekal Di Bawah Petak Fail */}
       <div className="p-3 bg-slate-950 border-t-2 border-slate-800 select-none">
         <button
           type="button"

@@ -38,8 +38,10 @@ export default function Home() {
   const [senaraiJiranIntim, setSenaraiJiranIntim] = useState([]);
   const [inputSlot, setInputSlot] = useState({}); 
 
-  // ➔ SUNTIKAN STATE BARU: Mengawal pembukaan tirai editor skrin penuh
   const [isEditorTerbuka, setIsEditorTerbuka] = useState(false);
+  
+  // ➔ 📋 SUNTIKAN STATE BARU: Mengawal pembukaan halaman dokumen jenis fail sah
+  const [isWhitelistTerbuka, setIsWhitelistTerbuka] = useState(false);
 
   // Penarik fail live dari R2
   async function muatSenaraiFailDaripadaR2(usernameAkaun) {
@@ -71,7 +73,6 @@ export default function Home() {
       if (data.success) {
         setKodHtml(data.kodHtml);
         setStatusR2(`Fail [${fail.nama}] sedia disunting.`);
-        // ➔ ⚡ SUNTIKAN: Buka kanvas skrin penuh automatik apabila fail diklik
         setIsEditorTerbuka(true);
       } else {
         setKodHtml(``);
@@ -428,10 +429,9 @@ export default function Home() {
         {user && hasProfil && (
           <div className="space-y-6 animate-fadeIn">
             
-            {/* ➔ JIKA MOD EDITOR RETRO FULLSCREEN AKTIF */}
-            {isEditorTerbuka ? (
+            {/* ➔ KEADAAN A: JIKA MOD EDITOR RETRO FULLSCREEN AKTIF */}
+            {isEditorTerbuka && (
               <div className="fixed inset-0 bg-slate-950 z-50 p-4 flex flex-col font-mono animate-fadeIn">
-                {/* Top Window Toolbar Dashboard Bar */}
                 <div className="bg-slate-900 border-2 border-slate-800 p-3 flex items-center justify-between mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]">
                   <div className="text-xs">
                     🔑 <span className="text-slate-400">Teratak Induk &gt;</span> <span className="text-yellow-400 font-bold">{failAktif.path}</span>
@@ -446,21 +446,19 @@ export default function Home() {
                     </button>
                     <button 
                       onClick={() => setIsEditorTerbuka(false)}
-                      className="bg-slate-800 border border-slate-700 text-slate-300 font-bold px-4 py-1.5 text-xs uppercase hover:text-white active:scale-95 transition-transform"
+                      className="bg-slate-800 border border-slate-700 text-slate-300 font-bold px-4 py-1.5 text-xs uppercase hover:text-white"
                     >
                       🚪 TUTUP EDITOR
                     </button>
                   </div>
                 </div>
 
-                {/* Status Bar Paparan Sistem */}
                 {statusR2 && (
                   <div className="mb-2 p-2 bg-slate-900 border border-slate-800 text-[11px] text-emerald-400">
                     [SISTEM LOG]: {statusR2}
                   </div>
                 )}
                 
-                {/* Ruangan Penyuntingan Kod CRT Luas */}
                 <div className="flex-1 flex flex-col">
                   <textarea
                     value={kodHtml}
@@ -470,8 +468,89 @@ export default function Home() {
                   />
                 </div>
               </div>
-            ) : (
-              /* ➔ MOD NORMAL: STRUKTUR STRATEGI PENGURUSAN VISUAL PENUH (PANGKAH MERAH HILANG) */
+            )}
+
+            {/* ➔ 📋 KEADAAN B: JIKA LAMAN DAFTAR FAIL SAH (ALLOWED FILE TYPES) TERBUKA */}
+            {isWhitelistTerbuka && (
+              <div className="w-full bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] font-mono text-xs p-6 space-y-6 animate-fadeIn">
+                <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3">
+                  <h2 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 uppercase tracking-wider">
+                    📋 DOKUMENTASI FORMAT FAIL SAH (ALLOWED FILE TYPES)
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsWhitelistTerbuka(false)}
+                    className="bg-slate-950 border-2 border-blue-500 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-4 py-1.5 font-bold uppercase transition-all shadow-[2px_2px_0px_0px_rgba(59,130,246,0.3)]"
+                  >
+                    ⬅️ KEMBALI KE WORKSPACE
+                  </button>
+                </div>
+
+                {/* 🛡️ SEBAB SEKATAN FAIL */}
+                <div className="bg-slate-950 p-4 border border-slate-800 leading-relaxed text-slate-300">
+                  <h3 className="text-yellow-400 font-bold uppercase mb-2">⚠️ Mengapa Terdapat Jenis Fail Terhad / Dilarang?</h3>
+                  <p className="mb-3">
+                    Pada masa ini, <b>Terataksiber</b> sedang berusaha untuk berkembang secara mampan. Matlamat kami adalah untuk memberi anda tapak web percuma supaya anda boleh mengatur kandungan dalam apa jua cara yang anda mahukan. Untuk memastikan kami dapat terus melakukan ini, kami perlu melaksanakan langkah-langkah untuk menghalang Terataksiber daripada menjadi <b>"hos pembuangan fail" (file dump host)</b>. Kami tidak mempunyai sumber untuk menangani dan menghalang perkara ini daripada berlaku jika kami membenarkan pengguna memuat naik apa sahaja yang mereka mahu, jadi penyelesaian sementara buat masa ini adalah dengan hanya membenarkan jenis fail yang kami tahu berguna untuk membuat tapak web statik.
+                  </p>
+                  <p className="mb-3">
+                    Contohnya, membenarkan pengguna untuk mengehos fail boleh laku <b>(EXE)</b> menyediakan cara untuk penyerang mengehoskan kandungan berniat jahat, dan kami mahu meminimumkannya. Selain itu, jika tapak mula digunakan untuk mengehoskan kandungan berniat jahat, ada kemungkinan enjin carian seperti Google akan menghukum kami dalam kedudukan (*ranking*), atau pengendali pusat data kami akan memberitahu kami bahawa kami tidak boleh menjalankan perniagaan dengan mereka, yang akan menjejaskan tapak semua orang di Terataksiber.
+                  </p>
+                  <p>
+                    Muzik <b>MP3</b> dan video <b>MP4</b> mempunyai masalah yang sama, kerana jika kandungan yang dimuat naik menjadi sangat popular ("menjadi viral"), ia akan mengatasi pelayan kami dan menjadikan lebar jalur (*bandwidth*) kami lebih mahal. Dan mengehos kandungan media kaya secara langsung hampir tidak pernah menjadi cara terbaik untuk melakukannya. <b>Soundcloud</b> menyediakan cara yang bagus untuk mengehoskan muzik, dan <b>Youtube</b> melakukan kerja yang sangat baik dengan mengambil video anda, memprosesnya, memastikan ia berfungsi pada semua penyemak imbas, dan kemudian menyediakan cara mudah untuk anda membenamkan (*embed*) kandungan tersebut dalam halaman web anda.
+                  </p>
+                </div>
+
+                {/* 🛠️ JADUAL TUTORIAL ASAS DAN FORMAT CODE */}
+                <div className="space-y-4">
+                  <h3 className="text-pink-400 font-bold uppercase tracking-wider">🛠️ Kamus Struktur & Tutorial Asas Format Fail</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">📄 .html / .htm (Teras Web)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Nadi utama struktur kandungan laman web abang.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"<h1>Teratak Abang</h1>\n<p>Selamat datang geng!</p>"}</pre>
+                    </div>
+
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">🎨 .css (Gaya Kosmetik)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Zon menghias warna, sempadan retro, dan saiz teks.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"body {\n  background: black;\n  color: pink;\n}"}</pre>
+                    </div>
+
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">⚡ .js / .json (Skrip & Objek Data)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Untuk logik interaktif atau pemetaan data berstruktur.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"// Pemicu log\nconsole.log('Kampung Siber Sedia!');"}</pre>
+                    </div>
+
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">🖼️ .gif (Grafik Animasi Retro)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Gambar bergerak bervibe vintaj 90-an yang sangat ringan.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"<img src=\"hiasan.gif\" alt=\"Animasi\" />"}</pre>
+                    </div>
+
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">📝 .md / .markdown / .txt (Dokumentasi)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Teks murni yang selamat untuk diari atau nota arkib siber.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"# Catatan Hari Ini\n- Layan konvoi Karak\n- Siap R2 server"}</pre>
+                    </div>
+
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">🔤 .woff / .woff2 / .ttf (Tipografi Font)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Fail font murni untuk memasang tulisan piksel/komputer klasik.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"@font-face {\n  font-family: 'Retro';\n  src: url('font.woff2');\n}"}</pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-950 border border-dashed border-blue-900 text-center text-slate-400 text-[11px]">
+                  📬 Jika anda mempunyai jenis fail yang anda percaya patut dibenarkan, sila hubungi kami di Pondok Siber dan kami akan melihat sama ada kami boleh meletakkannya untuk anda. Terima kasih!
+                </div>
+              </div>
+            )}
+
+            {/* ➔ KEADAAN C: JIKA BUKAN EDITOR & BUKAN WHITELIST (MOD NORMAL DASHBOARD) */}
+            {!isEditorTerbuka && !isWhitelistTerbuka && (
               <div className="space-y-6">
                 <MenuNavigasiSiber />
 
@@ -483,10 +562,12 @@ export default function Home() {
                     onCiptaItem={handleCiptaItemFizikal}
                     onPadamItem={handlePadamItemFizikal}
                     namaPengguna={namaPengguna}
+                    // ➔ Sambungkan suis baru untuk membuka dokumentasi whitelist fail
+                    onShowWhitelist={() => setIsWhitelistTerbuka(true)}
                   />
                 </div>
 
-                {/* ➔ 🛰️ PINDAHAN STRATEGIK: Butang Master Commit Tepat Di Bawah Petak Grid Explorer Fail */}
+                {/* Butang Master Commit Tepat Di Bawah Petak Grid Explorer Fail */}
                 <div className="p-4 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] font-mono">
                   <button
                     type="button"
@@ -517,7 +598,7 @@ export default function Home() {
             )}
 
             {/* PANEL SOSIAL KAMPUNG */}
-            {!isEditorTerbuka && (
+            {!isEditorTerbuka && !isWhitelistTerbuka && (
               <div className="space-y-4 pt-4 border-t-2 border-dashed border-slate-900">
                 
                 {permintaanJiran.length > 0 && (
@@ -535,7 +616,7 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-              )}
+                )}
 
                 <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#ec4899] font-mono text-xs">
                   <h3 className="text-pink-400 font-bold mb-1">💖 PENGURUSAN CARTA JIRAN INTIM (TOP 8)</h3>
