@@ -89,15 +89,16 @@ export default async function LamanWargaSiber({ params }) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
         
-        {/* Mula: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS) */}
+        {/* Mula: Paparan Iframe Sandboxed Bersama Suntikan Token Top Navigation */}
         <div className={adakahLamanUtama ? "w-full h-[75vh] min-h-[550px] border-b-2 border-slate-900 bg-slate-950" : "w-full h-screen overflow-hidden bg-slate-950"}>
           <iframe 
             src={`/api/raw-serve?username=${namaPengguna}&path=${subPathFail}`}
             className="w-full h-full border-0 block"
-            sandbox="allow-scripts allow-forms allow-popups"
+            // ➔ ✅ PEMBAIKAN JITU: Ditambah token allow-top-navigation-by-user-activation demi kelancaran perpindahan menu
+            sandbox="allow-scripts allow-forms allow-popups allow-top-navigation-by-user-activation"
           />
         </div>
-        {/* Tamat: Paparan Iframe Sandboxed Anti-XSS Selamat */}
+        {/* Tamat: Paparan Iframe Sandboxed Bersama Suntikan Token Top Navigation */}
         
         {adakahLamanUtama && (
           <>

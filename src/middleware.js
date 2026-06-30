@@ -38,7 +38,6 @@ export function middleware(request) {
   // =========================================================
   // 🔐 BENTENG 2: CONTENT SECURITY POLICY (CSP) HEADERS
   // =========================================================
-  // Mula: Melonggarkan frame-src supaya iframe siber boleh memuatkan API raw-serve
   const ketetapanCSP = `
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://apis.google.com;
@@ -50,7 +49,6 @@ export function middleware(request) {
     base-uri 'self';
     form-action 'self';
   `.replace(/\s{2,}/g, ' ').trim(); 
-  // Tamat: Melonggarkan frame-src
 
   const huluRequest = new Headers(request.headers);
   huluRequest.set('Content-Security-Policy', ketetapanCSP);
@@ -64,10 +62,12 @@ export function middleware(request) {
   responSistem.headers.set('Content-Security-Policy', ketetapanCSP);
   
   // =====================================================================
-  // ➔ ✅ PEMBAIKAN JITU: Ditukar dari 'DENY' ke 'SAMEORIGIN' (Surgical Fix Isu No 3)
-  // Membenarkan teratak utama memuatkan iframe dari api/raw-serve miliknya sendiri
+  // ➔ ✅ PEMBAIKAN JITU: Kecualikan /api/raw-serve daripada X-Frame-Options SAMEORIGIN
+  // Langkah ini membolehkan iframe sandboxed membaca data tanpa disekat pelayar
   // =====================================================================
-  responSistem.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  if (!pathname.startsWith('/api/raw-serve')) {
+    responSistem.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  }
   // =====================================================================
   
   responSistem.headers.set('X-Content-Type-Options', 'nosniff');
