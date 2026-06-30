@@ -13,10 +13,10 @@ export function middleware(request) {
   // =========================================================
   // 🛡️ BENTENG 1: RATE LIMITING (ANTI-SPAM BOT / DDOS PROTECTION)
   // =========================================================
-  // Kita hanya fokus mengunci jalan API Upload untuk mengelakkan bot menembak spam script
+  // Kita kunci jalan API Upload untuk mengelakkan bot menembak spam script
   if (pathname.startsWith('/api/upload')) {
-    const HAD_PERMINTAAN = 10;        // Maksimum 10 kali muat naik
-    const JENDELA_MASA = 60 * 1000;   // Dalam tempoh 1 minit (60,000 milisaat)
+    const HAD_PERMINTAAN = 25;        // ➔ ✅ PEMBAIKAN: Dinaikkan ke 25 kali klik biar abang puas testing!
+    const JENDELA_MASA = 15 * 1000;   // ➔ ✅ PEMBAIKAN: Diturunkan ke 15 saat sahaja (bukan 1 minit lagi)
     const masaSekarang = Date.now();
 
     if (!storTrafik.has(ip)) {
@@ -25,19 +25,19 @@ export function middleware(request) {
 
     const logTrafikWarga = storTrafik.get(ip);
     
-    // Bersihkan log lama yang dah lebih daripada 1 minit
+    // Bersihkan log lama yang dah lebih daripada 15 saat
     const logAktif = logTrafikWarga.filter(masaLog => masaSekarang - masaLog < JENDELA_MASA);
     
     // Masukkan cap masa permintaan terbaharu
     logAktif.push(masaSekarang);
     storTrafik.set(ip, logAktif);
 
-    // Jika bot atau pengguna klik melampaui had, sekat serta-merta!
+    // Jika aktiviti melampaui had luar biasa (bot tegar), sekat sekejap sahaja
     if (logAktif.length > HAD_PERMINTAAN) {
       return NextResponse.json(
         { 
           success: false, 
-          message: "⚠️ Jangan gopoh abangku! Sistem mengesan aktiviti terlalu laju. Sila bertenang dan cuba lagi dalam 1 minit." 
+          message: "⚠️ Jangan gopoh abangku! Sistem mengesan aktiviti terlalu laju. Sila bertenang dan cuba lagi dalam 15 saat." 
         },
         { status: 429 } // Status 429: Too Many Requests
       );
@@ -45,7 +45,7 @@ export function middleware(request) {
   }
 
   // =========================================================
-  // 🛡️ BENTENG 2: CONTENT SECURITY POLICY (CSP) HEADERS
+  // 🔐 BENTENG 2: CONTENT SECURITY POLICY (CSP) HEADERS
   // =========================================================
   // Menghalang sebarang cubaan suntikan skrip berniat jahat daripada luar ekosistem Kampung Siber
   const ketetapanCSP = `
@@ -84,7 +84,7 @@ export function middleware(request) {
 }
 
 // =========================================================
-// 🎯 MATCHERS: Tentukan kawasan mana yang wajib dilindungi
+// MATCHERS: Tentukan kawasan mana yang wajib dilindungi
 // =========================================================
 export const config = {
   matcher: [
