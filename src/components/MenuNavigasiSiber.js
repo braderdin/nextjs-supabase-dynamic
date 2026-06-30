@@ -4,18 +4,19 @@ import { usePathname } from 'next/navigation';
 export default function MenuNavigasiSiber() {
   const pathname = usePathname();
 
-  // Mula: Susunan Laluan Menu Baharu Mengikut Misi Abangku (Termasuk Laman Saya)
+  // Mula: Susunan Menu Baharu Ikut Pelan Baris & Kotak Aktiviti Terbaru abangku
   const senaraiMenu = [
     { nama: "🏠 Teraju Utama", pautan: "/" },
     { nama: "🚀 Laman Saya", pautan: "/laman/abangdin" },
     { nama: "📨 Surat Layang", pautan: "/surat-layang" },
     { nama: "🌐 Jelajah Kampung", pautan: "/jelajah" },
     { nama: "⛺ Pondok Siber", pautan: "/pondok" },
+    { nama: "📢 Aktiviti Terbaru", pautan: "/activity" },
     { nama: "📜 Kitab HTML", pautan: "/kitab" },
     { nama: "🎨 Kitab Grafik", pautan: "/kitab_grafik" },
     { nama: "📋 Format Fail Sah", pautan: "/DOKUMENTASI_FORMAT_FAIL_SAH" },
   ];
-  // Tamat: Susunan Laluan Menu Baharu Mengikut Misi Abangku
+  // Tamat: Susunan Menu Baharu Ikut Pelan Baris & Kotak Aktiviti Terbaru abangku
 
   return (
     <nav className="w-full bg-slate-900 border-2 border-slate-800 p-2 shadow-[4px_4px_0px_0px_#ec4899]">
@@ -24,7 +25,7 @@ export default function MenuNavigasiSiber() {
           🧭 MENU_UTAMA.SYS :
         </div>
         
-        {/* Mula: Kontena Paparan Butang Navigasi Komuniti */}
+        {/* Mula: Grid Pembahagi Navigasi Komuniti */}
         <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap flex-1 gap-2">
           {senaraiMenu.map((menu, indeks) => {
             const adakahAktif = pathname === menu.pautan;
@@ -44,7 +45,7 @@ export default function MenuNavigasiSiber() {
             );
           })}
         </div>
-        {/* Tamat: Kontena Paparan Butang Navigasi Komuniti */}
+        {/* Tamat: Grid Pembahagi Navigasi Komuniti */}
       </div>
     </nav>
   );
