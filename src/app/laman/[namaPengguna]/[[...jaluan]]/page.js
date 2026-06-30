@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
-import Link from 'next/link'; 
+import Link from 'next/link';  
 
 // ➔ PENYELESAIAN ABADI: Guna Absolute Import (@/) untuk elak pening mengira anak tangga folder!
 import KomponenKomenDanKaunter from "@/components/KomponenKomenDanKaunter"; 
@@ -25,7 +25,7 @@ async function tukarStreamKeTeks(stream) {
     chunks.push(chunk);
   } 
   return Buffer.concat(chunks).toString("utf8");
-} 
+}
 
 export default async function LamanWargaSiber({ params }) {
   const resolvedParams = await params;
@@ -36,6 +36,8 @@ export default async function LamanWargaSiber({ params }) {
   const namaFailFull = `${namaPengguna.toLowerCase()}/${subPathFail}`;
 
   let senaraiJiranIntim = [];
+  let kodIsiAsli = "";
+
   try {
     const { data: profil } = await supabase
       .from('warga_profil')
@@ -49,21 +51,39 @@ export default async function LamanWargaSiber({ params }) {
         .select('jiran_username, slot_kedudukan')
         .eq('user_id', profil.id)
         .order('slot_kedudukan', { ascending: true });
-           
+            
       if (jiranData) {
         senaraiJiranIntim = jiranData;
       }
     }
 
-    const arahanAmbil = new GetObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: namaFailFull,
-    });
-    
-    const responR2 = await r2Client.send(arahanAmbil);
-    const kodIsiAsli = await tukarStreamKeTeks(responR2.Body);
+    // =====================================================================
+    // Mula: Enjin Imbasan Direktori Auto Fallback (Surgical Fix Index Fallback)
+    // =====================================================================
+    try {
+      // Cubaan pertama: Ambil fail secara tepat berdasarkan subPath URL
+      const arahanAmbil = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: namaFailFull,
+      });
+      const responR2 = await r2Client.send(arahanAmbil);
+      kodIsiAsli = await tukarStreamKeTeks(responR2.Body);
+    } catch (errR2) {
+      // Cubaan kedua (Fallback): Jika fail tiada, kemungkinan besar ia adalah sebuah folder direktori
+      const folderKeyFallback = `${namaFailFull.replace(/\/$/, '')}/index.html`;
+      const arahanFolder = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: folderKeyFallback,
+      });
+      const responFolder = await r2Client.send(arahanFolder);
+      kodIsiAsli = await tukarStreamKeTeks(responFolder.Body);
+    }
+    // =====================================================================
+    // Tamat: Enjin Imbasan Direktori Auto Fallback (Surgical Fix Index Fallback)
+    // =====================================================================
 
-    const adakahLamanUtama = subPathFail === 'index.html';
+    // Memastikan bar kaunter pelawat dan top 8 jiran muncul jika berada di index utama teratak
+    const adakahLamanUtama = subPathFail === 'index.html' || subPathFail === '';
 
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
