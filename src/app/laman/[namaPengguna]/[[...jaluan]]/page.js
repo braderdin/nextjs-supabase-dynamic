@@ -6,6 +6,7 @@ import Link from 'next/link';
 import KomponenKomenDanKaunter from "@/components/KomponenKomenDanKaunter"; 
 import WidgetJiranIntim from "@/components/WidgetJiranIntim"; 
 
+// Mula: Inisialisasi Hubungan R2 Pelayan
 const r2Client = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -14,31 +15,28 @@ const r2Client = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 }); 
+// Tamat: Inisialisasi Hubungan R2 Pelayan
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-async function tukarStreamKeTeks(stream) {
-  const chunks = [];
-  for await (const chunk of stream) {
-    chunks.push(chunk);
-  } 
-  return Buffer.concat(chunks).toString("utf8");
-}
 
 export default async function LamanWargaSiber({ params }) {
   const resolvedParams = await params;
   const namaPengguna = resolvedParams.namaPengguna;
   const jaluan = resolvedParams.jaluan;
 
+  // Menyusun semula laluan fail secara dinamik
   const subPathFail = jaluan && jaluan.length > 0 ? jaluan.join('/') : 'index.html';
   const namaFailFull = `${namaPengguna.toLowerCase()}/${subPathFail}`;
 
   let senaraiJiranIntim = [];
-  let kodIsiAsli = "";
+  let profilWujud = false;
 
   try {
+    // =====================================================================
+    // Mula: Semakan Profil Warga & Jiran Intim via Supabase
+    // =====================================================================
     const { data: profil } = await supabase
       .from('warga_profil')
       .select('id')
@@ -46,40 +44,47 @@ export default async function LamanWargaSiber({ params }) {
       .maybeSingle();
 
     if (profil) {
+      profilWujud = true; // Mengesahkan bahawa teratak warga ini memang wujud dalam database
       const { data: jiranData } = await supabase
         .from('jiran_intim')
         .select('jiran_username, slot_kedudukan')
         .eq('user_id', profil.id)
         .order('slot_kedudukan', { ascending: true });
-            
+                  
       if (jiranData) {
         senaraiJiranIntim = jiranData;
       }
     }
+    // =====================================================================
+    // Tamat: Semakan Profil Warga & Jiran Intim via Supabase
+    // =====================================================================
+
+    // Jika nama teratak tiada langsung dalam rekod pangkalan data kampung
+    if (!profilWujud) {
+      throw new Error("Profil siber ghaib abangku!");
+    }
 
     // =====================================================================
-    // Mula: Enjin Imbasan Direktori Auto Fallback (Surgical Fix Index Fallback)
+    // Mula: Verifikasi Kewujudan Fail/Folder di R2 (Kunci Paparan 404 Padu)
     // =====================================================================
     try {
-      // Cubaan pertama: Ambil fail secara tepat berdasarkan subPath URL
+      // Cubaan pertama: Ambil metadata fail secara tepat berdasarkan subPath URL
       const arahanAmbil = new GetObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Key: namaFailFull,
       });
-      const responR2 = await r2Client.send(arahanAmbil);
-      kodIsiAsli = await tukarStreamKeTeks(responR2.Body);
+      await r2Client.send(arahanAmbil);
     } catch (errR2) {
-      // Cubaan kedua (Fallback): Jika fail tiada, kemungkinan besar ia adalah sebuah folder direktori
+      // Cubaan kedua (Fallback): Jika fail tiada, kemungkinan besar ia adalah folder direktori (cth: /aboutme)
       const folderKeyFallback = `${namaFailFull.replace(/\/$/, '')}/index.html`;
       const arahanFolder = new GetObjectCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Key: folderKeyFallback,
       });
-      const responFolder = await r2Client.send(arahanFolder);
-      kodIsiAsli = await tukarStreamKeTeks(responFolder.Body);
+      await r2Client.send(arahanFolder);
     }
     // =====================================================================
-    // Tamat: Enjin Imbasan Direktori Auto Fallback (Surgical Fix Index Fallback)
+    // Tamat: Verifikasi Kewujudan Fail/Folder di R2
     // =====================================================================
 
     // Memastikan bar kaunter pelawat dan top 8 jiran muncul jika berada di index utama teratak
@@ -87,7 +92,20 @@ export default async function LamanWargaSiber({ params }) {
 
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-between">
-        <div dangerouslySetInnerHTML={{ __html: kodIsiAsli }} />
+        
+        {/* ===================================================================== */}
+        {/* Mula: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS)    */}
+        {/* ===================================================================== */}
+        <div className={adakahLamanUtama ? "w-full h-[75vh] min-h-[550px] border-b-2 border-slate-900 bg-slate-950" : "w-full h-screen overflow-hidden bg-slate-950"}>
+          <iframe 
+            src={`/api/raw-serve?username=${namaPengguna}&path=${subPathFail}`}
+            className="w-full h-full border-0 block"
+            sandbox="allow-scripts allow-forms allow-popups"
+          />
+        </div>
+        {/* ===================================================================== */}
+        {/* Tamat: Paparan Iframe Sandboxed Anti-XSS Selamat (Bebas Kreatif JS)   */}
+        {/* ===================================================================== */}
         
         {adakahLamanUtama && (
           <>
@@ -100,6 +118,7 @@ export default async function LamanWargaSiber({ params }) {
       </div>
     );
   } catch (error) {
+    // Paparan Ralat 404 Klasik Jika Teratak atau Folder Gagal Ditemui di Baldi R2
     return (
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
         <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
