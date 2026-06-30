@@ -1,13 +1,50 @@
+"use client";
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+// Mula: PEMBAIKAN JITU - Import Supabase Client untuk pengesanan sesi dinamik
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Tamat: PEMBAIKAN JITU - Import Supabase Client untuk pengesanan sesi dinamik
 
 export default function MenuNavigasiSiber() {
   const pathname = usePathname();
+  // Mula: PEMBAIKAN JITU - State untuk menyimpan nama pengguna aktif secara dinamik
+  const [namaWargaAktif, setNamaWargaAktif] = useState("");
+
+  useEffect(() => {
+    async function jejakiSesiWarga() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profil } = await supabase
+            .from('warga_profil')
+            .select('username')
+            .eq('id', user.id)
+            .maybeSingle();
+            
+          if (profil) {
+            setNamaWargaAktif(profil.username.toLowerCase());
+          }
+        }
+      } catch (ralatSesi) {
+        console.error("Gagal menjejaki identiti warga untuk menu siber:", ralatSesi);
+      }
+    }
+    jejakiSesiWarga();
+  }, []);
+  // Tamat: PEMBAIKAN JITU - State untuk menyimpan nama pengguna aktif secara dinamik
 
   // Mula: Susunan Menu Baharu Ikut Pelan Baris & Kotak Aktiviti Terbaru abangku
   const senaraiMenu = [
     { nama: "🏠 Teraju Utama", pautan: "/" },
-    { nama: "🚀 Laman Saya", pautan: "/laman/abangdin" },
+    // Mula: PEMBAIKAN JITU - Mengubah pautan hardcoded abangdin kepada laluan dinamik warga siber aktif
+    { nama: "🚀 Laman Saya", pautan: namaWargaAktif ? `/laman/${namaWargaAktif}` : "/#tuntut-teratak" },
+    // Tamat: PEMBAIKAN JITU - Mengubah pautan hardcoded abangdin kepada laluan dinamik warga siber aktif
     { nama: "📨 Surat Layang", pautan: "/surat-layang" },
     { nama: "🌐 Jelajah Kampung", pautan: "/jelajah" },
     { nama: "⛺ Pondok Siber", pautan: "/pondok" },
