@@ -39,6 +39,8 @@ export default function Home() {
   const [inputSlot, setInputSlot] = useState({}); 
 
   const [isEditorTerbuka, setIsEditorTerbuka] = useState(false);
+  
+  // ➔ 📋 SUNTIKAN STATE BARU: Mengawal pembukaan halaman dokumen jenis fail sah
   const [isWhitelistTerbuka, setIsWhitelistTerbuka] = useState(false);
 
   // Penarik fail live dari R2
@@ -88,7 +90,7 @@ export default function Home() {
   async function handleCiptaItemFizikal(namaItem, jenisItem, laluanFullItem, isiKandungan = "") {
     try {
       const payloadHtml = jenisItem === 'fail' 
-        ? (isiKandungan.trim() || ``) 
+        ? (isiKandungan.trim() || `<!-- Fail ${namaItem} Baharu -->`) 
         : "FOLDER_PLACEHOLDER";
 
       const pathHantar = jenisItem === 'fail' ? laluanFullItem : `${laluanFullItem}/.keep`;
@@ -141,6 +143,8 @@ export default function Home() {
 
   async function ambilPermintaanJiran(usernameAkaun) {
     try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
       const { data, error } = await supabase
         .from('ikatan_jiran')
         .select('id, status, pengirim_id, warga_profil(username)')
@@ -425,7 +429,7 @@ export default function Home() {
         {user && hasProfil && (
           <div className="space-y-6 animate-fadeIn">
             
-            {/* KEADAAN A: JIKA MOD EDITOR RETRO FULLSCREEN AKTIF */}
+            {/* ➔ KEADAAN A: JIKA MOD EDITOR RETRO FULLSCREEN AKTIF */}
             {isEditorTerbuka && (
               <div className="fixed inset-0 bg-slate-950 z-50 p-4 flex flex-col font-mono animate-fadeIn">
                 <div className="bg-slate-900 border-2 border-slate-800 p-3 flex items-center justify-between mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]">
@@ -466,7 +470,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* KEADAAN B: JIKA LAMAN DOKUMENTASI WHITELIST FAIL TERBUKA */}
+            {/* ➔ 📋 KEADAAN B: JIKA LAMAN DAFTAR FAIL SAH (ALLOWED FILE TYPES) TERBUKA */}
             {isWhitelistTerbuka && (
               <div className="w-full bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] font-mono text-xs p-6 space-y-6 animate-fadeIn">
                 <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3">
@@ -482,82 +486,70 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* INFO PEMBANGUNAN MAMPAN */}
-                <div className="bg-slate-950 p-4 border border-slate-800 leading-relaxed text-slate-300 text-justify">
+                {/* 🛡️ SEBAB SEKATAN FAIL */}
+                <div className="bg-slate-950 p-4 border border-slate-800 leading-relaxed text-slate-300">
                   <h3 className="text-yellow-400 font-bold uppercase mb-2">⚠️ Mengapa Terdapat Jenis Fail Terhad / Dilarang?</h3>
                   <p className="mb-3">
-                    Pada masa ini, Terataksiber sedang berusaha untuk berkembang secara mampan. Matlamat kami adalah untuk memberi anda tapak web percuma supaya anda boleh mengatur kandungan dalam apa jua cara yang anda mahukan. Untuk memastikan kami dapat terus melakukan ini, kami perlu melaksanakan langkah-langkah untuk menghalang Terataksiber daripada menjadi "hos pembuangan fail". Pada masa ini kami tidak mempunyai sumber untuk menangani menghalang perkara ini daripada berlaku jika kami membenarkan pengguna memuat naik apa sahaja yang mereka mahu, jadi penyelesaian sementara buat masa ini adalah dengan hanya membenarkan jenis fail yang kami tahu berguna untuk membuat tapak web.
+                    Pada masa ini, <b>Terataksiber</b> sedang berusaha untuk berkembang secara mampan. Matlamat kami adalah untuk memberi anda tapak web percuma supaya anda boleh mengatur kandungan dalam apa jua cara yang anda mahukan. Untuk memastikan kami dapat terus melakukan ini, kami perlu melaksanakan langkah-langkah untuk menghalang Terataksiber daripada menjadi <b>"hos pembuangan fail" (file dump host)</b>. Kami tidak mempunyai sumber untuk menangani dan menghalang perkara ini daripada berlaku jika kami membenarkan pengguna memuat naik apa sahaja yang mereka mahu, jadi penyelesaian sementara buat masa ini adalah dengan hanya membenarkan jenis fail yang kami tahu berguna untuk membuat tapak web statik.
                   </p>
                   <p className="mb-3">
-                    Contohnya, membenarkan pengguna untuk mengehos fail boleh laku (EXE) menyediakan cara untuk penyerang mengehoskan kandungan berniat jahat, dan kami mahu meminimumkannya. Selain itu, jika tapak mula digunakan untuk mengehoskan kandungan berniat jahat, ada kemungkinan enjin carian seperti Google akan menghukum kami dalam kedudukan, atau pengendali pusat data kami akan memberitahu kami bahawa kami tidak boleh menjalankan perniagaan dengan mereka, yang akan menjejaskan tapak semua orang di Terataksiber.
+                    Contohnya, membenarkan pengguna untuk mengehos fail boleh laku <b>(EXE)</b> menyediakan cara untuk penyerang mengehoskan kandungan berniat jahat, dan kami mahu meminimumkannya. Selain itu, jika tapak mula digunakan untuk mengehoskan kandungan berniat jahat, ada kemungkinan enjin carian seperti Google akan menghukum kami dalam kedudukan (*ranking*), atau pengendali pusat data kami akan memberitahu kami bahawa kami tidak boleh menjalankan perniagaan dengan mereka, yang akan menjejaskan tapak semua orang di Terataksiber.
                   </p>
                   <p>
-                    Muzik MP3 dan video MP4 mempunyai masalah yang sama, kerana jika kandungan yang dimuat naik menjadi sangat popular ("menjadi viral"), ia akan mengatasi pelayan kami dan menjadikan lebar jalur kami lebih mahal. Dan mengehos kandungan media kaya secara langsung hampir tidak pernah menjadi cara terbaik untuk melakukannya. Soundcloud menyediakan cara yang bagus untuk mengehoskan muzik, dan Youtube melakukan kerja yang sangat baik dengan mengambil video anda, memprosesnya, memastikan ia berfungsi pada semua penyemak imbas, dan kemudian menyediakan cara mudah untuk anda membenamkan kandungan tersebut dalam halaman web anda.
+                    Muzik <b>MP3</b> dan video <b>MP4</b> mempunyai masalah yang sama, kerana jika kandungan yang dimuat naik menjadi sangat popular ("menjadi viral"), ia akan mengatasi pelayan kami dan menjadikan lebar jalur (*bandwidth*) kami lebih mahal. Dan mengehos kandungan media kaya secara langsung hampir tidak pernah menjadi cara terbaik untuk melakukannya. <b>Soundcloud</b> menyediakan cara yang bagus untuk mengehoskan muzik, dan <b>Youtube</b> melakukan kerja yang sangat baik dengan mengambil video anda, memprosesnya, memastikan ia berfungsi pada semua penyemak imbas, dan kemudian menyediakan cara mudah untuk anda membenamkan (*embed*) kandungan tersebut dalam halaman web anda.
                   </p>
                 </div>
 
-                {/* KAMUS DAN FORMAT KOD ASAS */}
+                {/* 🛠️ JADUAL TUTORIAL ASAS DAN FORMAT CODE */}
                 <div className="space-y-4">
                   <h3 className="text-pink-400 font-bold uppercase tracking-wider">🛠️ Kamus Struktur & Tutorial Asas Format Fail</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-                      <div>
-                        <span className="text-emerald-400 font-bold block mb-1">📄 .html / .htm (Teras Web)</span>
-                        <p className="text-slate-400 text-[11px] mb-2">Nadi utama struktur kandungan laman web abang.</p>
-                      </div>
-                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto whitespace-pre-wrap font-mono">{"<h1>Teratak Abang</h1>\n<p>Selamat datang geng!</p>"}</pre>
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">📄 .html / .htm (Teras Web)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Nadi utama struktur kandungan laman web abang.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"<h1>Teratak Abang</h1>\n<p>Selamat datang geng!</p>"}</pre>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-                      <div>
-                        <span className="text-emerald-400 font-bold block mb-1">🎨 .css (Gaya Kosmetik)</span>
-                        <p className="text-slate-400 text-[11px] mb-2">Zon menghias warna, sempadan retro, dan saiz teks.</p>
-                      </div>
-                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto whitespace-pre-wrap font-mono">{"body {\n  background: black;\n  color: pink;\n}"}</pre>
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">🎨 .css (Gaya Kosmetik)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Zon menghias warna, sempadan retro, dan saiz teks.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"body {\n  background: black;\n  color: pink;\n}"}</pre>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-                      <div>
-                        <span className="text-emerald-400 font-bold block mb-1">⚡ .js / .json (Skrip & Objek Data)</span>
-                        <p className="text-slate-400 text-[11px] mb-2">Untuk logik interaktif atau pemetaan data berstructured.</p>
-                      </div>
-                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto whitespace-pre-wrap font-mono">{"// Pemicu log\nconsole.log('Teratak Sedia!');"}</pre>
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">⚡ .js / .json (Skrip & Objek Data)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Untuk logik interaktif atau pemetaan data berstruktur.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"// Pemicu log\nconsole.log('Kampung Siber Sedia!');"}</pre>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-                      <div>
-                        <span className="text-emerald-400 font-bold block mb-1">🖼️ .gif (Grafik Animasi Retro)</span>
-                        <p className="text-slate-400 text-[11px] mb-2">Gambar bergerak bervibe vintaj 90-an yang sangat ringan.</p>
-                      </div>
-                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto whitespace-pre-wrap font-mono">{"<img src=\"hiasan.gif\" alt=\"Gempak\" />"}</pre>
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">🖼️ .gif (Grafik Animasi Retro)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Gambar bergerak bervibe vintaj 90-an yang sangat ringan.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"<img src=\"hiasan.gif\" alt=\"Animasi\" />"}</pre>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-                      <div>
-                        <span className="text-emerald-400 font-bold block mb-1">📝 .md / .markdown / .txt (Dokumentasi)</span>
-                        <p className="text-slate-400 text-[11px] mb-2">Teks murni yang selamat untuk diari atau nota arkib siber.</p>
-                      </div>
-                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto whitespace-pre-wrap font-mono">{"# Catatan Rider\n- Layan konvoi Karak\n- Siap server"}</pre>
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">📝 .md / .markdown / .txt (Dokumentasi)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Teks murni yang selamat untuk diari atau nota arkib siber.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"# Catatan Hari Ini\n- Layan konvoi Karak\n- Siap R2 server"}</pre>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-                      <div>
-                        <span className="text-emerald-400 font-bold block mb-1">🔤 .woff / .woff2 / .ttf (Tipografi Font)</span>
-                        <p className="text-slate-400 text-[11px] mb-2">Fail font murni untuk memasang tulisan piksel klasik.</p>
-                      </div>
-                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto whitespace-pre-wrap font-mono">{"@font-face {\n  font-family: 'Retro';\n  src: url('font.woff2');\n}"}</pre>
+                    <div className="bg-slate-950 p-4 border border-slate-850">
+                      <span className="text-emerald-400 font-bold block mb-1">🔤 .woff / .woff2 / .ttf (Tipografi Font)</span>
+                      <p className="text-slate-400 text-[11px] mb-2">Fail font murni untuk memasang tulisan piksel/komputer klasik.</p>
+                      <pre className="bg-slate-900 p-2 text-yellow-300 text-[10px] overflow-x-auto">{"@font-face {\n  font-family: 'Retro';\n  src: url('font.woff2');\n}"}</pre>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-3 bg-slate-950 border border-dashed border-blue-900 text-center text-slate-400 text-[11px]">
-                  📬 Jika anda mempunyai jenis fail yang anda percaya patut dibenarkan, sila hubungi kami di Pondok Siber. Terima kasih!
+                  📬 Jika anda mempunyai jenis fail yang anda percaya patut dibenarkan, sila hubungi kami di Pondok Siber dan kami akan melihat sama ada kami boleh meletakkannya untuk anda. Terima kasih!
                 </div>
               </div>
             )}
 
-            {/* KEADAAN C: MOD WORKSPACE UTAMA (BILA EDITOR & WHITELIST DITUTUP) */}
+            {/* ➔ KEADAAN C: JIKA BUKAN EDITOR & BUKAN WHITELIST (MOD NORMAL DASHBOARD) */}
             {!isEditorTerbuka && !isWhitelistTerbuka && (
               <div className="space-y-6">
                 <MenuNavigasiSiber />
@@ -570,38 +562,42 @@ export default function Home() {
                     onCiptaItem={handleCiptaItemFizikal}
                     onPadamItem={handlePadamItemFizikal}
                     namaPengguna={namaPengguna}
-                    // ➔ 🛰️ PENYATUAN BUTANG COMMIT: Sambungkan wayar fungsi simpan pelayan ke dalam grid anak
-                    onCommitProject={(e) => handleSimpanKeR2(e)}
-                    loadingCommit={loading}
+                    // ➔ Sambungkan suis baru untuk membuka dokumentasi whitelist fail
                     onShowWhitelist={() => setIsWhitelistTerbuka(true)}
                   />
                 </div>
 
-                {/* LOG STATUS PROJEK BAWAH TANAH */}
-                {(statusR2 || lamanBerjaya) && (
-                  <div className="p-4 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] font-mono text-center">
-                    {statusR2 && (
-                      <div className="text-slate-400 text-[11px] animate-fadeIn">
-                        [SISTEM LOG]: {statusR2}
-                      </div>
-                    )}
-                    {lamanBerjaya && (
-                      <div className="mt-2">
-                        <Link 
-                          href={`/laman/${lamanBerjaya}`} 
-                          target="_blank"
-                          className="inline-block text-[11px] font-bold text-pink-400 hover:underline bg-pink-950/20 px-3 py-1 border border-pink-900/30"
-                        >
-                          🔗 Klik Sini Untuk Melawat Hasil Live Teratak Anda!
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Butang Master Commit Tepat Di Bawah Petak Grid Explorer Fail */}
+                <div className="p-4 bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] font-mono">
+                  <button
+                    type="button"
+                    disabled={loading || senaraiFailR2.length === 0}
+                    onClick={(e) => handleSimpanKeR2(e)}
+                    className="w-full bg-slate-950 border-2 border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-500 font-black py-3 px-4 text-xs tracking-widest uppercase transition-all shadow-[4px_4px_0px_0px_rgba(234,179,8,0.15)] active:translate-x-0.5 active:translate-y-0.5"
+                  >
+                    {loading ? "📡 SEDANG MEMANCAR DATA..." : `🛰️ SERAH & KUNCI REKOD PROJEK KE PELAYAN (COMMIT: ${failAktif.name.toUpperCase()})`}
+                  </button>
+                  {statusR2 && (
+                    <div className="mt-3 p-3 bg-slate-950 border border-slate-850 text-slate-400 text-center text-[11px] animate-fadeIn">
+                      [SISTEM LOG]: {statusR2}
+                    </div>
+                  )}
+                  {lamanBerjaya && (
+                    <div className="mt-2 text-center">
+                      <Link 
+                        href={`/laman/${lamanBerjaya}`} 
+                        target="_blank"
+                        className="inline-block text-[11px] font-bold text-pink-400 hover:underline bg-pink-950/20 px-3 py-1 border border-pink-900/30"
+                      >
+                        🔗 Klik Sini Untuk Melawat Hasil Live Teratak Anda!
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* PANEL SOSIAL KAMPUNG SIBER */}
+            {/* PANEL SOSIAL KAMPUNG */}
             {!isEditorTerbuka && !isWhitelistTerbuka && (
               <div className="space-y-4 pt-4 border-t-2 border-dashed border-slate-900">
                 

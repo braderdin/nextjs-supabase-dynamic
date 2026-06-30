@@ -9,9 +9,10 @@ export default function PengurusFailGrid({
   onCiptaItem, 
   onPadamItem, 
   namaPengguna,
-  // ➔ 📦 PENGUKUHAN WAYAR: Terima data hantaran dari halaman induk
   onCommitProject,
-  loadingCommit = false
+  loadingCommit = false,
+  // ➔ 📋 PROP BARU: Fungsi untuk membuka paparan dokumentasi jenis fail
+  onShowWhitelist
 }) {
   const [modPaparan, setModPaparan] = useState("grid");
   const [folderSemasa, setFolderSemasa] = useState(""); 
@@ -25,13 +26,11 @@ export default function PengurusFailGrid({
 
   function sahkanKeselamatanFail(nama) {
     const pecahan = nama.split('.');
-    if (pecahan.length < 2) return false; 
-    // ➔ ✅ PEMBAIKAN JITU: Mengubah typo 'pecapan' kepada 'pecahan' untuk mengelakkan ReferenceError
+    if (pecapan.length < 2) return false; 
     const ekstensi = pecahan.pop().toLowerCase();
     return EKSTENSI_DIBENARKAN.includes(ekstensi);
   }
 
-  // Menguruskan hantaran borang cipta item
   function handleCiptaEntiti(e) {
     e.preventDefault();
     const namaBersih = inputNamaBaru.trim().replace(/[^a-zA-Z0-9._-]/g, "");
@@ -96,9 +95,18 @@ export default function PengurusFailGrid({
         {/* HEADER UTAMA PENGURUS FAIL */}
         <div className="bg-slate-800 p-2 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 select-none">
           <div className="flex items-center gap-2">
-            <div className="bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-[140px] sm:max-w-xs truncate">
+            <div className="bg-slate-950 px-2 py-1 border border-slate-850 text-yellow-400 font-bold max-w-[150px] sm:max-w-xs truncate">
               📂 C:\teratak\{namaPengguna || "warga"}{folderSemasa ? `\\${folderSemasa.replace(/\//g, '\\')}` : ""}
             </div>
+            
+            {/* ➔ 📋 SUNTIKAN BARU: Butang Dokumen Jenis Fail Sah (Anak Panah Merah) */}
+            <button
+              type="button"
+              onClick={onShowWhitelist}
+              className="bg-slate-950 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-2 py-1 font-bold text-[10px] uppercase transition-all tracking-tight"
+            >
+              📋 JENIS_FAIL.TXT
+            </button>
           </div>
           
           <div className="flex gap-2">
@@ -292,7 +300,6 @@ export default function PengurusFailGrid({
         </div>
       </div>
 
-      {/* ➔ 🛰️ SATU BUTANG MASTER (COMMIT TO SERVER): Tepat di bawah kotak fail */}
       <div className="p-3 bg-slate-950 border-t-2 border-slate-800 select-none">
         <button
           type="button"
@@ -300,7 +307,7 @@ export default function PengurusFailGrid({
           onClick={onCommitProject}
           className="w-full bg-slate-900 border-2 border-yellow-500 hover:bg-yellow-500 hover:text-slate-950 text-yellow-400 font-mono font-black py-2.5 px-4 text-[11px] tracking-wider uppercase transition-all shadow-[3px_3px_0px_0px_rgba(234,179,8,0.2)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          {loadingCommit ? "🔄 SEDANG MEMANCAR DATA..." : "🛰️ SERAH & KUNCI REKOD PROJEK KE PELAYAN (COMMIT TO SERVER)"}
+          {loadingCommit ? "🔄 SEDANG BERHUBUNG..." : "🚀 KUNCI PROJEK KE PELAYAN (COMMIT)"}
         </button>
       </div>
 
