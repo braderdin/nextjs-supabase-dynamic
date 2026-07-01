@@ -56,17 +56,19 @@ export default function MenuNavigasiSiber() {
   // Tamat: Susunan Menu Baharu Ikut Pelan Baris & Kotak Aktiviti Terbaru abangku
 
   return (
-    <nav className="w-full bg-slate-900 border-2 border-slate-800 p-2 shadow-[4px_4px_0px_0px_#ec4899]">
-      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 font-mono text-xs">
+    // Mula: Transformasi Navigasi Gaya Vercel Minimalis 2026
+    <nav className="w-full bg-slate-950/40 backdrop-blur-md border border-slate-900/80 p-1.5 rounded-none shadow-[2px_2px_0px_0px_rgba(255,255,255,0.01)]">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 font-mono text-xs">
         
-        {/* Mula: Label Panduan Induk System CRT */}
-        <div className="bg-slate-950 px-3 py-1.5 text-pink-400 font-bold border border-slate-800 text-center md:text-left select-none">
-          🧭 MENU_UTAMA.SYS :
+        {/* Mula: Label Teks Murni Tanpa Kotak Border Tebal */}
+        <div className="text-slate-500 font-bold px-2 py-1 text-center lg:text-left select-none text-[11px] tracking-wider uppercase flex items-center justify-center lg:justify-start gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-pink-500/80 animate-pulse"></span>
+          system_nav::
         </div>
-        {/* Tamat: Label Panduan Induk System CRT */}
+        {/* Tamat: Label Teks Murni Tanpa Kotak Border Tebal */}
         
-        {/* Mula: Grid Pembahagi Navigasi Komuniti */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap flex-1 gap-2">
+        {/* Mula: Grid Pembahagi Navigasi Komuniti Teks Murni */}
+        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 flex-1">
           {senaraiMenu.map((menu, indeks) => {
             const adakahAktif = pathname === menu.pautan;
             
@@ -74,10 +76,10 @@ export default function MenuNavigasiSiber() {
               <Link 
                 key={indeks}
                 href={menu.pautan}
-                className={`text-center bg-slate-950 border px-2 sm:px-4 py-2 font-medium transition-all active:scale-[0.98] text-[11px] sm:text-xs truncate ${
+                className={`text-center px-3 py-1.5 font-medium text-[11px] transition-all rounded-none border border-transparent select-none active:scale-[0.98] ${
                   adakahAktif 
-                    ? "text-pink-500 border-pink-500 bg-pink-950/20 font-bold shadow-[inner_0px_0px_8px_rgba(236,72,153,0.2)]" 
-                    : "text-slate-300 border-slate-800 hover:border-pink-500/50 hover:text-pink-400"
+                    ? "text-white bg-slate-900/90 border-slate-800/80 font-bold shadow-[0_1px_2px_rgba(0,0,0,0.4)]" 
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/30"
                 }`}
               >
                 {menu.nama}
@@ -85,9 +87,10 @@ export default function MenuNavigasiSiber() {
             );
           })}
         </div>
-        {/* Tamat: Grid Pembahagi Navigasi Komuniti */}
+        {/* Tamat: Grid Pembahagi Navigasi Komuniti Teks Murni */}
         
       </div>
     </nav>
+    // Tamat: Transformasi Navigasi Gaya Vercel Minimalis 2026
   );
 }
