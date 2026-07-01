@@ -41,7 +41,6 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
       .select("*")
       .eq("username_tuan_tanah", namaPengguna.toLowerCase())
       .order("created_at", { ascending: false });
-
     if (!error && data) {
       setSenaraiKomen(data);
     }
@@ -59,7 +58,6 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
     e.preventDefault();
     if (!nama || !ucapan) return;
     setLoadingKomen(true);
-
     const { error } = await supabase
       .from("buku_pelawat")
       .insert({
@@ -67,7 +65,6 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
         nama_pelawat: nama,
         ucapan_pelawat: ucapan
       });
-
     if (!error) {
       setNama("");
       setUcapan("");
@@ -90,7 +87,7 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-slate-950/40 backdrop-blur-md border border-slate-900/80 shadow-sm rounded-none transition-all">
           {/* Rekaan Kotak Kaunter Float Minimalis */}
           <div className="text-center sm:text-left flex flex-col gap-1">
-            <span className="text-[10px] text-slate-500 font-bold尊 block uppercase tracking-wider">analytics::total_hits</span>
+            <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">analytics::total_hits</span>
             <div className="inline-block bg-slate-900/40 px-3 py-1 border border-slate-900 text-emerald-400 font-bold text-base tracking-widest">
               {formatKaunterLED}
             </div>
@@ -101,7 +98,7 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
             <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">network::official_badge</span>
             <a href="https://braderdin.vercel.app" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-80 transition-opacity">
               <div className="w-[88px] h-[31px] bg-slate-900 border border-slate-800 text-white font-black text-[7px] flex flex-col items-center justify-center uppercase tracking-normal leading-none">
-                <span className="text-slate-400">Kampung</span>
+                <span className="text-slate-400">Campung</span>
                 <span className="text-[8px] text-pink-500 tracking-tight font-bold">Siber 2026</span>
               </div>
             </a>
@@ -121,7 +118,8 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
           </div>
 
           {/* Borang Input Jejak Digital Inline Style */}
-          <form onSubmit={handleHantarComen || handleHantarKomen} className="space-y-3 mb-5">
+          {/* Mula: PEMBAIKAN JITU - Menyembuhkan ralat ReferenceError handleHantarComen & setUbatan */}
+          <form onSubmit={handleHantarKomen} className="space-y-3 mb-5">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input 
                 type="text" 
@@ -135,7 +133,7 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
                 type="text" 
                 placeholder="Tulis ucapan comel atau salam di sini..."
                 value={ucapan}
-                onChange={(e) => setUbatan || setUcapan(e.target.value)}
+                onChange={(e) => setUcapan(e.target.value)}
                 required
                 className="sm:col-span-2 bg-slate-900/40 border border-slate-900 p-2 text-xs text-white focus:outline-none focus:border-slate-800 focus:bg-slate-950 placeholder:text-slate-700 font-mono rounded-none transition-colors"
               />
@@ -148,6 +146,7 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
               {loadingKomen ? "⏳ SEDANG MENCATAT..." : "✍️ CATAT JEJAK DIGITAL"}
             </button>
           </form>
+          {/* Tamat: PEMBAIKAN JITU - Menyembuhkan ralat ReferenceError handleHantarComen & setUbatan */}
 
           {/* Senarai Komen Warga Terminal Style */}
           <div className="space-y-2 max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-900 scrollbar-track-transparent pr-0.5">
@@ -170,6 +169,5 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
 
       </div>
     </div>
-    // Tamat: Kontena Master Halaman Pendaratan Pelawat Gaya Vercel 2026
   );
 }
