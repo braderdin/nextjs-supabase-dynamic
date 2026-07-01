@@ -9,6 +9,9 @@ import ButangGoogleLogin from '../components/ButangGoogleLogin';
 import MenuNavigasiSiber from '../components/MenuNavigasiSiber';
 import TuntutNamaTeratak from '../components/TuntutNamaTeratak';
 import PengurusFailGrid from '../components/PengurusFailGrid'; 
+// Mula: PEMBAIKAN JITU - Import komponen modular Pengurusan Jiran Intim Bento 2026 yang baharu
+import PengurusanJiranIntim from '../components/workspace/PengurusanJiranIntim';
+// Tamat: PEMBAIKAN JITU - Import komponen modular Pengurusan Jiran Intim Bento 2026 yang baharu
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -62,11 +65,7 @@ export default function Home() {
   async function handlePilihFailDariGrid(fail) {
     if (fail.jenis === 'folder') return;
     setFailAktif({ name: fail.nama, path: fail.laluanFull });
-    
-    // Mula: PEMBAIKAN JITU - Mengganti loading = true kepada fungsi setter React yang sah
     setLoading(true); 
-    // Tamat: PEMBAIKAN JITU - Mengganti loading = true kepada fungsi setter React yang sah
-    
     setStatusR2(`Membuka dekripsi data fail [${fail.laluanFull}]... 📥`);
     setLamanBerjaya("");
     try {
@@ -238,11 +237,7 @@ export default function Home() {
     });
 
     ambilDataSupabase();
-    
-    // Mula: PEMBAIKAN JITU - Memanggil fungsi ambilWargaR2 yang ditakrifkan untuk elak ReferenceError
     ambilWargaR2();
-    // Tamat: PEMBAIKAN JITU - Memanggil fungsi ambilWargaR2 yang ditakrifkan untuk elak ReferenceError
-    
     ambilDataShoutbox();
 
     const saluranShout = supabase
@@ -272,11 +267,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ namaPengguna: usernameInput, kodHtml, pathFailBaru: "index.html" }),
         });
-        
-        // Mula: PEMBAIKAN JITU - Menyelaras fungsi kepada penarik data R2 yang betul
         await ambilWargaR2(); 
-        // Tamat: PEMBAIKAN JITU - Menyelaras fungsi kepada penarik data R2 yang betul
-        
         await muatSenaraiFailDaripadaR2(usernameInput);
       }
     } catch (err) { setErrorProfil("Ralat Sistem: Gagal menuntut nama."); }
@@ -396,7 +387,7 @@ export default function Home() {
               <div className="w-full bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] font-mono text-xs p-6 space-y-6 animate-fadeIn">
                 <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3">
                   <h2 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 uppercase tracking-wider">📋 DOKUMENTASI FORMAT FAIL SAH</h2>
-                  <button type="button" onClick={() => setIsWhitelistTerbuka(false)} className="bg-slate-950 border-2 border-blue-500 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-4 py-1.5 font-bold uppercase transition-all shadow-[2px_2px_0px_0px_rgba(59,130,246,0.3)]">⬅️ KEMBALI KE WORKSPACE</button>
+                  <button type="button" onClick={() => setIsWhitelistTerbuka(false)} className="bg-slate-950 border-2 border-blue-500 text-blue-400 hover:bg-blue-400 hover:text-slate-950 px-4 py-1.5 font-bold uppercase transition-all shadow-[2px_2px_0px_0px_rgba(59,130,246,0.3)]">📋 KEMBALI KE WORKSPACE</button>
                 </div>
                 <div className="bg-slate-950 p-4 border border-slate-800 leading-relaxed text-slate-300">
                   <h3 className="text-yellow-400 font-bold uppercase mb-2">⚠️ Mengapa Terdapat Jenis Fail Terhad / Dilarang?</h3>
@@ -444,32 +435,15 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="bg-slate-900 border-2 border-slate-800 p-4 shadow-[4px_4px_0px_0px_#ec4899] font-mono text-xs">
-                  <h3 className="text-pink-400 font-bold mb-1">💖 PENGURUSAN CARTA JIRAN INTIM (TOP 8)</h3>
-                  <p className="text-[10px] text-slate-500 mb-4">Susun dan kunci rakan tetangga abang ke dalam grid paparan 8 slot utama teratak.</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {Array.from({ length: 8 }, (_, i) => {
-                      const slotNum = i + 1;
-                      const jiranKunci = senaraiJiranIntim.find(j => Number(j.slot_kedudukan) === slotNum);
-                      return (
-                        <div key={slotNum} className="bg-slate-950 border border-slate-850 p-2 flex flex-col justify-between gap-2">
-                          <span className="text-[9px] text-slate-600 font-bold">SLOT 0{slotNum}</span>
-                          {jiranKunci ? (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-pink-400 font-bold truncate">@{jiranKunci.jiran_username}</span>
-                              <button onClick={() => handlePadamJiranIntim(jiranKunci.id)} className="w-full bg-slate-900 border border-red-900/40 text-red-400 py-1 text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all">Kosongkan</button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col gap-1">
-                              <input type="text" placeholder="nama jiran" value={inputSlot[slotNum] || ""} onChange={(e) => setInputSlot(prev => ({ ...prev, [slotNum]: e.target.value.replace(/[^a-zA-Z0-9]/g, "") }))} className="bg-slate-900 border border-slate-850 px-1 py-0.5 text-[10px] text-white focus:outline-none focus:border-pink-500" />
-                              <button onClick={() => handleKunciJiranIntim(slotNum)} className="w-full bg-slate-900 border border-slate-700 text-slate-400 py-1 text-[9px] uppercase hover:border-pink-500 hover:text-pink-400 font-bold">Kunci</button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                {/* Mula: Panggilan Komponen Modular Pengurusan Jiran Intim Bento 2026 */}
+                <PengurusanJiranIntim 
+                  senaraiJiranIntim={senaraiJiranIntim}
+                  inputSlot={inputSlot}
+                  setInputSlot={setInputSlot}
+                  handlePadamJiranIntim={handlePadamJiranIntim}
+                  handleKunciJiranIntim={handleKunciJiranIntim}
+                />
+                {/* Tamat: Panggilan Komponen Modular Pengurusan Jiran Intim Bento 2026 */}
               </div>
             )}
           </div>
