@@ -9,13 +9,12 @@ import ButangGoogleLogin from '../components/ButangGoogleLogin';
 import MenuNavigasiSiber from '../components/MenuNavigasiSiber';
 import TuntutNamaTeratak from '../components/TuntutNamaTeratak';
 import PengurusFailGrid from '../components/PengurusFailGrid'; 
-// Mula: PEMBAIKAN JITU - Import komponen modular Pengurusan Jiran Intim Bento 2026 yang baharu
 import PengurusanJiranIntim from '../components/workspace/PengurusanJiranIntim';
-// Tamat: PEMBAIKAN JITU - Import komponen modular Pengurusan Jiran Intim Bento 2026 yang baharu
-
-// Mula: PEMBAIKAN JITU - Import komponen modular Dataran Shoutbox Global 2026 yang baharu
 import DataranShoutbox from '../components/workspace/DataranShoutbox';
-// Tamat: PEMBAIKAN JITU - Import komponen modular Dataran Shoutbox Global 2026 yang baharu
+
+// Mula: PEMBAIKAN JITU - Import komponen modular Hero Landing Page 2026 yang baharu
+import HeroLanding from '../components/auth/HeroLanding';
+// Tamat: PEMBAIKAN JITU - Import komponen modular Hero Landing Page 2026 yang baharu
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -318,40 +317,15 @@ export default function Home() {
 
       <div className="max-w-5xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center gap-8">
         
+        {/* Mula: Panggilan Komponen Modular Hero Landing Page Bento 2026 */}
         {!user && (
-          <div className="space-y-8 text-center font-mono">
-            <div className="p-8 bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#ec4899] max-w-2xl mx-auto">
-              <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-yellow-300 uppercase tracking-widest mb-2">
-                🏛️ KAMPUNG SIBER NUSANTARA
-              </h1>
-              <p className="text-xs text-slate-400 leading-relaxed mb-6">
-                Ekosistem pembinaan teratak digital tanpa kekangan algoritma dan pengiklanan. Bina laman web HTML & CSS tulen anda secara bebas!
-              </p>
-              <div className="p-3 bg-slate-950 border border-slate-850 text-yellow-400 font-bold text-xs animate-pulse mb-6">
-                📡 {mesejDinamik}
-              </div>
-              <div className="flex justify-center">
-                <button 
-                  onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })} 
-                  className="bg-slate-950 border-2 border-pink-500 hover:bg-pink-500 hover:text-slate-950 text-pink-400 font-black px-6 py-3 tracking-widest uppercase transition-all shadow-[4px_4px_0px_0px_rgba(236,72,153,0.3)]"
-                >
-                  🔑 MASUK & PACAK TERATAK SEKARANG
-                </button>
-              </div>
-            </div>
-
-            <div className="max-w-xl mx-auto p-4 bg-slate-900 border border-slate-800 text-left">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-2">🌐 Warga Yang Baru Bertukang Kod:</span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                {wargaLive.map((nama, i) => (
-                  <Link key={i} href={`/laman/${nama}`} className="p-2 bg-slate-950 border border-slate-850 text-pink-400 hover:border-pink-500 truncate block">
-                    @{nama}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
+          <HeroLanding 
+            mesejDinamik={mesejDinamik} 
+            wargaLive={wargaLive} 
+            onLogin={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })} 
+          />
         )}
+        {/* Tamat: Panggilan Komponen Modular Hero Landing Page Bento 2026 */}
 
         {user && !hasProfil && (
           <TuntutNamaTeratak 
@@ -439,7 +413,6 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Mula: Panggilan Komponen Modular Pengurusan Jiran Intim Bento 2026 */}
                 <PengurusanJiranIntim 
                   senaraiJiranIntim={senaraiJiranIntim}
                   inputSlot={inputSlot}
@@ -447,9 +420,7 @@ export default function Home() {
                   handlePadamJiranIntim={handlePadamJiranIntim}
                   handleKunciJiranIntim={handleKunciJiranIntim}
                 />
-                {/* Tamat: Panggilan Komponen Modular Pengurusan Jiran Intim Bento 2026 */}
 
-                {/* Mula: Panggilan Komponen Modular Dataran Shoutbox Global Bento 2026 */}
                 <DataranShoutbox 
                   shoutNama={shoutNama}
                   setShoutNama={setShoutNama}
@@ -459,7 +430,6 @@ export default function Home() {
                   senaraiShout={senaraiShout}
                   handleHantarShout={handleHantarShout}
                 />
-                {/* Tamat: Panggilan Komponen Modular Dataran Shoutbox Global Bento 2026 */}
               </div>
             )}
           </div>
