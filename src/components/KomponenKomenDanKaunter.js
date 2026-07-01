@@ -80,44 +80,48 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
   const formatKaunterLED = String(hit).padStart(6, "0");
 
   return (
-    <div className="w-full bg-[#030712] border-t-4 border-double border-slate-800 pt-12 pb-16 px-4 font-mono text-xs text-slate-300 select-none">
-      <div className="max-w-xl mx-auto space-y-10">
+    // Mula: Kerangka Pembungkus Translucent 2026 Baru
+    <div className="w-full bg-transparent border-t border-slate-900/60 pt-10 pb-16 px-4 font-mono text-xs text-slate-300 select-none">
+      <div className="max-w-xl mx-auto space-y-6">
         
         {/* ========================================================= */}
-        {/* 📊 SEGMEN 4: KAUNTER HIT & LENCANA RASMI                   */}
+        {/* 📊 SEGMEN 4: KAUNTER HIT & LENCANA RASMI (Bento Row)      */}
         {/* ========================================================= */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-4 bg-slate-900 border-2 border-slate-850">
-          {/* Rekaan Kotak Kaunter LED Hijau */}
-          <div className="text-center sm:text-left">
-            <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider mb-1">📟 Jumlah Hit Pelawat:</span>
-            <div className="inline-block bg-black px-3 py-1.5 border border-slate-800 text-emerald-400 font-black text-lg tracking-widest shadow-inner">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-slate-950/40 backdrop-blur-md border border-slate-900/80 shadow-sm rounded-none transition-all">
+          {/* Rekaan Kotak Kaunter Float Minimalis */}
+          <div className="text-center sm:text-left flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 font-bold尊 block uppercase tracking-wider">analytics::total_hits</span>
+            <div className="inline-block bg-slate-900/40 px-3 py-1 border border-slate-900 text-emerald-400 font-bold text-base tracking-widest">
               {formatKaunterLED}
             </div>
           </div>
 
-          {/* Rekaan Lencana Kacak Kampung Siber (88x31 px Standard Retro GeoCities) */}
-          <div className="text-center sm:text-right flex flex-col items-center sm:items-end gap-1">
-            <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">🏅 Lencana Kampung:</span>
-            <a href="https://braderdin.vercel.app" target="_blank" rel="noopener noreferrer" className="inline-block hover:scale-105 transition-transform">
-              <div className="w-[88px] h-[31px] bg-gradient-to-r from-pink-500 via-purple-600 to-blue-500 text-white font-black text-[7px] flex flex-col items-center justify-center border border-white uppercase tragedy-none leading-none shadow shadow-pink-500/20">
-                <span>Kampung</span>
-                <span className="text-[8px] text-yellow-300 tracking-tighter">Siber Retro</span>
+          {/* Rekaan Lencana Kacak Kampung Siber 2026 Style */}
+          <div className="text-center sm:text-right flex flex-col items-center sm:items-end gap-1.5">
+            <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">network::official_badge</span>
+            <a href="https://braderdin.vercel.app" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-80 transition-opacity">
+              <div className="w-[88px] h-[31px] bg-slate-900 border border-slate-800 text-white font-black text-[7px] flex flex-col items-center justify-center uppercase tracking-normal leading-none">
+                <span className="text-slate-400">Kampung</span>
+                <span className="text-[8px] text-pink-500 tracking-tight font-bold">Siber 2026</span>
               </div>
             </a>
           </div>
         </div>
 
         {/* ========================================================= */}
-        {/* 📓 SEGMEN 3: BUKU PELAWAT KAMPUNG (GUESTBOOK)             */}
+        {/* 📓 SEGMEN 3: BUKU PELAWAT KAMPUNG (Bento Guestbook)       */}
         {/* ========================================================= */}
-        <div className="bg-slate-900 border-2 border-slate-850 p-6 shadow-[4px_4px_0px_0px_#3b82f6]">
-          <div className="border-b border-dashed border-slate-800 pb-3 mb-4">
-            <h3 className="text-blue-400 font-black text-sm uppercase">📓 BUKU PELAWAT TERATAK</h3>
-            <p className="text-[10px] text-slate-500 mt-0.5">Sila tinggalkan jejak digital, salam, atau ucapan ikhlas anda di sini!</p>
+        <div className="bg-slate-950/40 backdrop-blur-md border border-slate-900/80 p-5 sm:p-6 shadow-sm rounded-none transition-all">
+          <div className="border-b border-slate-900/60 pb-3 mb-4 select-none">
+            <h3 className="text-blue-400 font-bold text-[12px] uppercase tracking-tight flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              Warga Guestbook Terminal
+            </h3>
+            <p className="text-[10px] text-slate-500 mt-0.5 font-sans">Sila tinggalkan salam digital atau ucapan ikhlas anda di teratak ini.</p>
           </div>
 
-          {/* Borang Input Jejak Digital */}
-          <form onSubmit={handleHantarKomen} className="space-y-3 mb-6">
+          {/* Borang Input Jejak Digital Inline Style */}
+          <form onSubmit={handleHantarComen || handleHantarKomen} className="space-y-3 mb-5">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input 
                 type="text" 
@@ -125,45 +129,47 @@ export default function KomponenKomenDanKaunter({ namaPengguna }) {
                 value={nama}
                 onChange={(e) => setNama(e.target.value)}
                 required
-                className="sm:col-span-1 bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-700 font-mono"
+                className="sm:col-span-1 bg-slate-900/40 border border-slate-900 p-2 text-xs text-white focus:outline-none focus:border-slate-800 focus:bg-slate-950 placeholder:text-slate-700 font-mono rounded-none transition-colors"
               />
               <input 
                 type="text" 
                 placeholder="Tulis ucapan comel atau salam di sini..."
                 value={ucapan}
-                onChange={(e) => setUcapan(e.target.value)}
+                onChange={(e) => setUbatan || setUcapan(e.target.value)}
                 required
-                className="sm:col-span-2 bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-700 font-mono"
+                className="sm:col-span-2 bg-slate-900/40 border border-slate-900 p-2 text-xs text-white focus:outline-none focus:border-slate-800 focus:bg-slate-950 placeholder:text-slate-700 font-mono rounded-none transition-colors"
               />
             </div>
             <button 
               type="submit"
               disabled={loadingKomen}
-              className="w-full bg-slate-950 border border-blue-500 hover:bg-blue-500 hover:text-slate-950 text-blue-400 font-black text-[10px] uppercase py-2 tracking-wider transition-colors disabled:opacity-40"
+              className="w-full bg-slate-900 hover:bg-blue-950/40 border border-slate-900 hover:border-blue-900/60 text-blue-400 hover:text-blue-300 font-bold text-[10px] uppercase py-2 tracking-wider transition-all rounded-none disabled:opacity-40 active:scale-[0.99]"
             >
-              {loadingKomen ? "⚡ SEDANG MENCATAT..." : "✍️ CATAT JEJAK DIGITAL"}
+              {loadingKomen ? "⏳ SEDANG MENCATAT..." : "✍️ CATAT JEJAK DIGITAL"}
             </button>
           </form>
 
-          {/* Senarai Komen Warga */}
-          <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-800">
+          {/* Senarai Komen Warga Terminal Style */}
+          <div className="space-y-2 max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-900 scrollbar-track-transparent pr-0.5">
             {senaraiKomen.length === 0 ? (
-              <p className="text-center text-slate-600 text-[10px] py-4">[ Belum ada jejak ditinggalkan. Jadi yang pertama! ]</p>
+              <p className="text-center text-slate-600 text-[10px] py-6 select-none font-mono">[ Belum ada jejak ditinggalkan. Jadi yang pertama! ]</p>
             ) : (
               senaraiKomen.map((komen) => (
-                <div key={komen.id} className="bg-slate-950 border border-slate-850 p-3 leading-relaxed">
-                  <div className="flex justify-between items-center text-[9px] font-bold uppercase border-b border-slate-900 pb-1 mb-1.5">
-                    <span className="text-pink-400">👤 {komen.nama_pelawat}</span>
-                    <span className="text-slate-600">{new Date(komen.created_at).toLocaleDateString('ms-MY')}</span>
+                <div key={komen.id} className="bg-slate-950/40 border border-slate-900/60 p-3 leading-relaxed rounded-none transition-all hover:border-slate-900">
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase border-b border-slate-900/40 pb-1.5 mb-1.5 select-none text-slate-500">
+                    <span className="text-pink-400/90 font-mono">📡 {komen.nama_pelawat}</span>
+                    <span className="font-mono text-slate-600">{new Date(komen.created_at).toLocaleDateString('ms-MY')}</span>
                   </div>
-                  <p className="text-slate-400 text-[11px] font-mono">{komen.ucapan_pelawat}</p>
+                  <p className="text-slate-300 text-[11px] font-mono leading-normal break-all">{komen.ucapan_pelawat}</p>
                 </div>
               ))
             )}
           </div>
         </div>
+        {/* Tamat: SEGMEN BUKU PELAWAT */}
 
       </div>
     </div>
+    // Tamat: Kontena Master Halaman Pendaratan Pelawat Gaya Vercel 2026
   );
 }

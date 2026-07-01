@@ -90,10 +90,6 @@ export default async function LamanWargaSiber({ params }) {
     }
 
     // Mula: PEMBAIKAN JITU - Melonggarkan benteng kawalan profil pangkalan data
-    // Ketimbang memaksa profilWujud mesti benar, kita benarkan Cloudflare R2 menjadi kata putus terakhir halaman web.
-    // Sekatan 'if (!profilWujud) throw new Error()' lama telah dibuang secara rasmi di sini demi kelancaran paparan R2.
-    // Tamat: PEMBAIKAN JITU - Melonggarkan benteng kawalan profil pangkalan data
-
     let kodHtmlAsli = "";
     try {
       const arahanAmbil = new GetObjectCommand({
@@ -155,13 +151,16 @@ export default async function LamanWargaSiber({ params }) {
           });
         `}} />
 
+        {/* Mula: Penyelarasan Status Mood Ticker Minimalis 2026 */}
         {adakahLamanUtama && (
-          <div className="w-full bg-slate-900 border-b border-slate-800 py-2 text-center font-mono text-xs text-yellow-400 select-none">
-            <span className="animate-pulse bg-yellow-500/10 px-3 py-1 border border-yellow-500/30">
-              {dataMood.ikon} STATUS EMOSI TERATAK: <span className="text-white font-bold uppercase">{dataMood.teks} {dataMood.ikon}</span>
+          <div className="w-full bg-slate-950/60 backdrop-blur-md border-b border-slate-900/80 py-2.5 text-center font-mono text-xs text-slate-400 select-none">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-slate-900/30 border border-slate-900 text-slate-300">
+              <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+              {dataMood.ikon} STATUS EMOSI: <span className="text-white font-bold uppercase">{dataMood.teks}</span>
             </span>
           </div>
         )}
+        {/* Tamat: Penyelarasan Status Mood Ticker Minimalis 2026 */}
 
         <div className="w-full bg-slate-950">
           <iframe 
@@ -176,30 +175,39 @@ export default async function LamanWargaSiber({ params }) {
         
         {adakahLamanUtama && (
           <>
+            {/* Mula: Penyelarasan Bento Kad Lencana Warga 2026 */}
             <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs select-none">
-              <div className="bg-slate-900 border-2 border-slate-800 shadow-[4px_4px_0px_0px_#eab308] p-4">
-                <h3 className="text-yellow-400 font-bold mb-3 uppercase tracking-wider text-[11px]">🛡️ Pasar Karat Lencana (88x31 Friend Badges)</h3>
-                <div className="flex flex-wrap gap-2 bg-slate-950 p-3 border border-slate-850 justify-center">
-                  <div className="w-[88px] h-[31px] bg-gradient-to-r from-pink-500 to-purple-600 border border-white text-[7px] text-center flex items-center justify-center font-black uppercase">Warga Asli</div>
-                  <div className="w-[88px] h-[31px] bg-slate-900 border border-slate-700 text-[7px] text-slate-500 text-center flex items-center justify-center">Slot Kosong</div>
+              <div className="bg-slate-950/40 backdrop-blur-md border border-slate-900/80 p-5 shadow-[2px_2px_0px_0px_rgba(255,255,255,0.01)]">
+                <h3 className="text-white font-bold mb-3 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-pink-500"></span>
+                  warga_badges::showcase
+                </h3>
+                <div className="flex flex-wrap gap-2 bg-slate-950/60 p-3 border border-slate-900 justify-center">
+                  <div className="w-[88px] h-[31px] bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-800 text-[8px] text-slate-400 text-center flex items-center justify-center font-bold uppercase">Warga Asli</div>
+                  <div className="w-[88px] h-[31px] bg-transparent border border-dashed border-slate-900 text-[8px] text-slate-700 text-center flex items-center justify-center font-medium uppercase">Slot Empty</div>
                 </div>
               </div>
             </div>
+            {/* Tamat: Penyelarasan Bento Kad Lencana Warga 2026 */}
 
-            <div className="max-w-xl w-full mx-auto px-4 mt-8">
+            <div className="max-w-xl w-full mx-auto px-4 mt-6">
               <WidgetJiranIntim senaraiJiran={senaraiJiranIntim} />
             </div>
 
+            {/* Mula: Penyelarasan Navigasi Webring Kampung 2026 Teks Murni */}
             <div className="max-w-xl w-full mx-auto px-4 mt-6 font-mono text-xs select-none">
-              <div className="bg-slate-900 border-2 border-slate-800 p-3 shadow-[4px_4px_0px_0px_#ec4899] text-center space-y-2">
-                <span className="text-[10px] text-slate-400 block uppercase tracking-widest">🕸️ RANGKAIAN WEBRING KAMPUNG SIBER 🕸️</span>
-                <div className="flex justify-center gap-2 pt-1">
-                  <Link href={urlJiranKiri} className="bg-slate-950 border border-slate-800 hover:border-pink-500 px-3 py-1.5 font-bold text-pink-400 text-[10px]">◀️ JIRAN KIRI</Link>
-                  <Link href={urlJiranRawak} className="bg-slate-950 border border-yellow-500 hover:bg-yellow-500 hover:text-black px-3 py-1.5 font-bold text-yellow-400 text-[10px]">🎲 TERATAK RAWAK</Link>
-                  <Link href={urlJiranKanan} className="bg-slate-950 border border-slate-800 hover:border-pink-500 px-3 py-1.5 font-bold text-pink-400 text-[10px]">JIRAN KANAN ▶️</Link>
+              <div className="bg-slate-950/40 backdrop-blur-md border border-slate-900/80 p-4 shadow-[2px_2px_0px_0px_rgba(255,255,255,0.01)] text-center space-y-3">
+                <span className="text-[10px] text-slate-500 block uppercase tracking-widest font-bold">
+                  🔗 rangkaian_webring_komuniti
+                </span>
+                <div className="flex justify-center items-center gap-1.5 pt-0.5">
+                  <Link href={urlJiranKiri} className="bg-slate-900/60 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 px-3 py-1.5 font-bold text-slate-400 hover:text-white text-[10px] transition-all">◀ JIRAN KIRI</Link>
+                  <Link href={urlJiranRawak} className="bg-slate-900/60 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 px-3 py-1.5 font-bold text-emerald-400 hover:text-emerald-300 text-[10px] transition-all">🎲 TERATAK RAWAK</Link>
+                  <Link href={urlJiranKanan} className="bg-slate-900/60 hover:bg-slate-900 border border-slate-900 hover:border-slate-800 px-3 py-1.5 font-bold text-slate-400 hover:text-white text-[10px] transition-all">JIRAN KANAN ▶</Link>
                 </div>
               </div>
             </div>
+            {/* Tamat: Penyelarasan Navigasi Webring Kampung 2026 Teks Murni */}
 
             <KomponenKomenDanKaunter namaPengguna={namaPengguna} />
           </>
@@ -210,12 +218,12 @@ export default async function LamanWargaSiber({ params }) {
     console.error("Ralat dikesan pada LamanWargaSiber:", error);
     return (
       <div className="min-h-screen bg-slate-950 text-slate-400 flex flex-col items-center justify-center font-mono text-xs p-6 text-center">
-        <div className="bg-slate-900 border-2 border-red-500 p-6 max-w-md shadow-[4px_4px_0px_0px_#ef4444]">
+        <div className="bg-slate-900/40 border border-red-950 p-6 max-w-md shadow-sm">
           <p className="text-red-400 font-bold text-sm mb-2">⚠️ FAIL / TERATAK TIDAK DIJUMPAI</p>
-          <p className="mb-4 leading-relaxed">
-            Maaf abangku, fail <span className="text-pink-400 font-bold">"{subPathFail}"</span> tiada dalam arkib teratak <span className="text-yellow-400 font-bold">@{namaPengguna}</span>.
+          <p className="mb-4 leading-relaxed text-slate-500 font-sans">
+            Maaf abangku, fail <span className="text-red-400 font-mono font-bold">"{subPathFail}"</span> tiada dalam arkib teratak <span className="text-white font-bold">@{namaPengguna}</span>.
           </p>
-          <Link href="/" className="inline-block bg-slate-950 border border-slate-800 hover:border-pink-500 text-slate-300 hover:text-pink-400 px-4 py-2 font-bold transition-all text-[11px]">
+          <Link href="/" className="inline-block bg-slate-900 hover:bg-slate-950 border border-slate-800 text-slate-300 hover:text-white px-4 py-2 font-bold transition-all text-[11px]">
             BALIK KE TERAJU UTAMA
           </Link>
         </div>
