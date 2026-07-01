@@ -13,6 +13,10 @@ import PengurusFailGrid from '../components/PengurusFailGrid';
 import PengurusanJiranIntim from '../components/workspace/PengurusanJiranIntim';
 // Tamat: PEMBAIKAN JITU - Import komponen modular Pengurusan Jiran Intim Bento 2026 yang baharu
 
+// Mula: PEMBAIKAN JITU - Import komponen modular Dataran Shoutbox Global 2026 yang baharu
+import DataranShoutbox from '../components/workspace/DataranShoutbox';
+// Tamat: PEMBAIKAN JITU - Import komponen modular Dataran Shoutbox Global 2026 yang baharu
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -444,67 +448,22 @@ export default function Home() {
                   handleKunciJiranIntim={handleKunciJiranIntim}
                 />
                 {/* Tamat: Panggilan Komponen Modular Pengurusan Jiran Intim Bento 2026 */}
+
+                {/* Mula: Panggilan Komponen Modular Dataran Shoutbox Global Bento 2026 */}
+                <DataranShoutbox 
+                  shoutNama={shoutNama}
+                  setShoutNama={setShoutNama}
+                  shoutMesej={shoutMesej}
+                  setShoutMesej={setShoutMesej}
+                  loadingShout={loadingShout}
+                  senaraiShout={senaraiShout}
+                  handleHantarShout={handleHantarShout}
+                />
+                {/* Tamat: Panggilan Komponen Modular Dataran Shoutbox Global Bento 2026 */}
               </div>
             )}
           </div>
         )}
-
-        <div className="bg-slate-900 border-2 border-slate-800 shadow-[6px_6px_0px_0px_#3b82f6] font-mono text-xs mt-4">
-          <div className="bg-slate-800 px-4 py-2 flex items-center justify-between border-b-2 border-slate-800 text-slate-200 select-none">
-            <span>🗣️ dataran_shoutbox_global.sys</span>
-            <span className="text-[9px] text-blue-400 font-black animate-pulse">📡 FREKUENSI_LIVE_REALTIME</span>
-          </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            <form onSubmit={handleHantarShout} className="space-y-3 bg-slate-950 p-4 border border-slate-850 flex flex-col justify-between">
-              <span className="text-[10px] text-blue-400 font-bold block uppercase tracking-wider">📢 LAUNGKAN MESEJ ANDA</span>
-              <div className="space-y-2 flex-1 pt-1">
-                <input 
-                  type="text" 
-                  maxLength={12}
-                  placeholder="Nama / Samaran (A-Z)" 
-                  value={shoutNama} 
-                  onChange={(e) => setShoutNama(e.target.value)} 
-                  required
-                  className="w-full bg-slate-900 border border-slate-850 p-2 text-yellow-400 focus:outline-none focus:border-blue-500 placeholder:text-slate-700"
-                />
-                <textarea 
-                  maxLength={100}
-                  rows={3}
-                  placeholder="Tinggalkan jejak, sapaan, atau url teratak abangku..." 
-                  value={shoutMesej} 
-                  onChange={(e) => setShoutMesej(e.target.value)} 
-                  required
-                  className="w-full bg-slate-900 border border-slate-850 p-2 text-slate-200 focus:outline-none focus:border-blue-500 placeholder:text-slate-700 resize-none text-[11px]"
-                />
-              </div>
-              <button 
-                type="submit" 
-                disabled={loadingShout}
-                className="w-full bg-blue-950 hover:bg-blue-600 text-blue-400 hover:text-slate-950 font-black py-2 uppercase border border-blue-500 tracking-wider text-[10px]"
-              >
-                {loadingShout ? "SEDANG MENJERIT..." : "⚡ LAUNGKAN SEKARANG"}
-              </button>
-            </form>
-
-            <div className="md:col-span-2 bg-black border-2 border-slate-850 p-3 h-[210px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 space-y-2 text-[11px]">
-              {senaraiShout.length === 0 ? (
-                <div className="text-center text-slate-700 py-16">[ Dataran sunyi murni... Jadilah warga pertama yang menegur! ]</div>
-              ) : (
-                senaraiShout.map((shout) => (
-                  <div key={shout.id} className="border-b border-dashed border-slate-900 pb-1.5 last:border-0 leading-relaxed break-all">
-                    <span className="text-blue-400 font-bold">[{shout.nama}]</span>: 
-                    <span className="text-slate-300 font-sans pl-1.5">{shout.mesej}</span>
-                    <span className="text-[8px] text-slate-700 block text-right font-mono">
-                      {new Date(shout.created_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-
-          </div>
-        </div>
 
       </div>
 
